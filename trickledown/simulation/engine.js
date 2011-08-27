@@ -164,6 +164,14 @@ Player.prototype.getEducation = function () {
     return this.education;
 };
 
+Player.prototype.getDividendSharingWeight = function (sector) {
+    var portfolio = this.portfolio;
+    // note: we don't count the lobbying
+    return portfolio.stocks[sector] !== undefined ?
+        portfolio.stocks[sector].technology + portfolio.stocks[sector].size :
+        0;
+};
+
 Player.prototype.paySalary = function (amount) {
     this.income = amount;
 };
@@ -175,6 +183,10 @@ Player.prototype.taxIncome = function (taxes) {
 
 Player.prototype.payGovernmentServices = function (taxes) {
     this.cash += taxes;
+};
+
+Player.prototype.payDividends = function (amount) {
+    this.cash += amount;
 };
 
 // this is an industry
@@ -237,6 +249,28 @@ Industry.prototype.payGovernmentContract = function (amount) {
     this.cash += amount;
 };
 
+Industry.prototype.distributeDividends = function (population) {
+    var dividends = this.cash,
+        totalWeight = 0,
+        sector = this.sector,
+        that = this,
+        dividendRatio;
+    // we spend dividends and salary. dividends are paid to investors, proportional
+    // to their investment
+    population.forEach(function (player) {
+        totalWeight += player.getDividendSharingWeight(sector);
+    });
+    if (totalWeight > 0) {
+        // keep the ratio
+        dividendRatio = dividends / totalWeight;
+        population.forEach(function (player) {
+            var pay = player.getDividendSharingWeight(sector) * dividendRatio;
+            // pay dividends
+            player.payDividends(pay);
+            that.cash -= pay;
+        });
+    }
+};
 
 // this is a world
 function World(worldName, oneDollarOneVote) {
@@ -439,6 +473,9 @@ World.prototype.iterate = function () {
     this.taxation();
 
     // 5. distribute dividends
+    this.industries.forEach(function (ind) {
+        ind.distributeDividends(that.population);
+    });
 
     // 6. amortize investments
 
