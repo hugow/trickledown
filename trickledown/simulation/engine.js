@@ -92,7 +92,7 @@ Portfolio.prototype.invest = function (purchaseSystem, amount) {
 };
 
 // this is a game player (i.e not a user but a player)
-function Player(o) {
+function Player(username, password, worldName, o) {
     var that = this;
     if (o === undefined) {
         o = {
@@ -129,12 +129,53 @@ function Player(o) {
     forEachProperty(o, function (value, prop) {
         that[prop] = value;
     });
+    this.username = username;
+    this.password = password;
+    this.world = worldName;
     // override the portfolio
     this.portfolio = new Portfolio(this.portfolio);
     if (o._id) {
         this.id = o._id;
     }
 }
+Player.prototype.save = function (collection, callback) {
+    collection.update(
+        {world: this.world, username: this.username},
+        this,
+        { upsert: true, safe: true},
+        callback
+    );
+};
+Player.prototype.setVotingProfile = function (taxTheRich, taxThePoor, redistributeToCorporations) {
+    this.vote = {
+        // how much the government should collect from the rich (and redistribute equally)
+        taxTheRich: taxTheRich,
+        // how much the government should collect from the poor (and redistribute equally)
+        taxThePoor: taxThePoor,
+        // how much of the collected taxes is distributed to corporations not people
+        redistributeToCorporations: redistributeToCorporations
+    };
+};
+Player.prototype.setSpendingProfile = function (goods, education, stocks, savings) {
+    var total = goods + education + stocks + savings;
+    if (total === 0) {
+        total = 1;
+    }
+    this.howToSpend  = {
+        goods: goods / total,
+        education: education / total,
+        stocks: stocks / total,
+        savings: savings / total
+    };
+};
+Player.prototype.setInvestmentProfile = function (investmentProfile) {
+    var portfolio = this.portfolio;
+    forEachProperty(investmentProfile, function (ind, sector) {
+        forEachProperty(ind, function (value, reason) {
+            portfolio.setInvestmentWeight(sector, reason, value);
+        });
+    });
+};
 Player.prototype.spend = function (purchaseSystem) {
     var education, goods, stocks, howToSpend = this.howToSpend;
     // we cash our savings
@@ -277,6 +318,7 @@ function World(worldName, oneDollarOneVote) {
     var that = this;
     this.worldName = worldName;
     this.population = [];
+    this.populationIndex = {};
     this.cash = 0;
     this.spentOnGoods = 0;
     // how we vote
@@ -484,16 +526,19 @@ World.prototype.iterate = function () {
     });
 
     // 6. amortize investments
-
     console.log('iterate]');
 };
 // creates a player (FIXME: the player will have to be added to the db?
 // maybe not: this only happens when we add a new user... so...
 // the async thing could be done after
-World.prototype.addNewPlayer = function (username) {
-    var p = new Player();
+World.prototype.addNewPlayer = function (username, password) {
+    var p = new Player(username, password, this.worldName);
     this.population.push(p);
+    this.populationIndex[username] = p;
     return p;
+};
+World.prototype.getPlayer = function (username) {
+    return this.populationIndex[username];
 };
 // computes the total amount of money in the world
 World.prototype.getTotalCash = function () {
@@ -526,9 +571,19 @@ World.prototype.load = function (collection, callback) {
                 return callback(null, that);
             }
             // otherwise, create a player and add it
-            that.population.add(new Player(player));
+            var p = new Player(player.username, player.passwrd, player.world, player);
+            that.population.add(p);
+            that.populationIndex[p.username] = p;
         });
     });
 };
-
+World.prototype.getIndustries = function () {
+    return this.industries.map(function (ind) {
+        return ind.sector;
+    });
+};
+World.prototype.getInvestmentReasons = function () {
+    return Portfolio.reasons;
+};
 exports.World = World;
+exports.forEachProperty = forEachProperty;

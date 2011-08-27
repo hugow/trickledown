@@ -2,7 +2,9 @@ var mongodb = require('mongodb'),
     async = require('async'),
     Db = mongodb.Db,
     Server = mongodb.Server,
-    World = require('./engine').World;
+    engine = require('./engine'),
+    World = engine.World,
+    forEachProperty = engine.forEachProperty;
 
 // all what we need to run the simulation is there
 function Simulation(dbClient, userCol, playerCol) {
@@ -16,19 +18,66 @@ function Simulation(dbClient, userCol, playerCol) {
         opov: new World('opov', false)
     };
 }
+Simulation.prototype.close = function () {
+    this.dbClient.close();
+};
 Simulation.prototype.start = function () {
     console.log('simulation start');
-    this.worlds.odov.addNewPlayer('alaskagirl');
     this.worlds.odov.iterate();
     console.log('Total cash ' + this.worlds.odov.getTotalCash());
-    // if we dont't do this, the thing will never exit
-    this.dbClient.close();
+};
+Simulation.prototype.createUser = function (
+    username,
+    password,
+    callback
+) {
+    var players = [], collection = this.playerCol;
+    forEachProperty(this.worlds, function (world) {
+        players.push(world.addNewPlayer(username, password, callback));
+    });
+    async.forEach(
+        players,
+        function (player, callback) {
+            player.save(collection, function (err) {
+                callback(err);
+            });
+        },
+        callback
+    );
 };
 Simulation.prototype.updatePlayer = function (
     username,
     password,
-    world
+    world,
+    spendingProfile,
+    votingProfile,
+    investmentProfile,
+    callback
 ) {
+    var player = this.worlds[world].getPlayer(username),
+        that = this;
+    // if the player does not exist in this world
+    // we must create it in all worlds
+    if (!player) {
+        this.createUser(username, password, function (err) {
+            if (err) {
+                return callback('could not create user');
+            }
+            player = that.worlds[world].getPlayer(username);
+        });
+    } else {
+        // if the password matches
+        if (player.password === password) {
+            // update the player
+            player.setVotingProfile(votingProfile.taxTheRich, votingProfile.taxThePoor, votingProfile.redistributeToCorporations);
+            player.setSpendingProfile(spendingProfile.goods, spendingProfile.education, spendingProfile.stocks, spendingProfile.savings);
+            player.setInvestmentProfile();
+            // synch it
+            player.save(this.playerCol, callback);
+        } else {
+            return callback('invalid password');
+        }
+    }
 };
 Simulation.prototype.getWorldState = function (
     username,
@@ -42,10 +91,51 @@ Simulation.prototype.getPlayerState = function (
     world
 ) {
 };
+// this is used to create a fake world, to allow the demonstration
+// of the whole thing
 Simulation.prototype.generateFakeUsers = function (
-    number
+    number,
+    callback
 ) {
+    var that = this, i, toprocess = number;
+
+    function internalCb(err) {
+        toprocess -= 1;
+        if (toprocess === 0) {
+            callback();
+        }
+    }
+
+    function getRandomInvestmentProfile(world) {
+        var o = {};
+        world.getIndustries().forEach(function (sector) {
+            var prof = o[sector] = {};
+            world.getInvestmentReasons().forEach(function (reason) {
+                prof[reason] = Math.random();
+            });
+        });
+        return o;
+    }
+
+    function updatePlayer(i) {
+        forEachProperty(that.worlds, function (world, worldName) {
+            that.updatePlayer(
+                "NPC" + i,
+                "pw" + i,
+                worldName,
+                { goods: Math.random(), education: Math.random(), stocks: Math.random() },
+                { taxTheRich: Math.random(), taxThePoor: Math.random(), redistributeToCorporations: Math.random()},
+                getRandomInvestmentProfile(world),
+                internalCb
+            );
+        });
+    }
+
+    for (i = 0; i < number; i += 1) {
+        updatePlayer(i);
+    }
 };
+
 Simulation.prototype.load = function (callback) {
     var that = this;
     async.map(
