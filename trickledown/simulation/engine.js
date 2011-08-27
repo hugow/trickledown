@@ -165,7 +165,16 @@ Player.prototype.getEducation = function () {
 };
 
 Player.prototype.paySalary = function (amount) {
-    this.salaryIncome = amount;
+    this.income = amount;
+};
+
+Player.prototype.taxIncome = function (taxes) {
+    this.cash = this.income - taxes;
+    this.income = 0;
+};
+
+Player.prototype.payGovernmentServices = function (taxes) {
+    this.cash += taxes;
 };
 
 // this is an industry
@@ -201,6 +210,10 @@ Industry.prototype.getMarketWeight = function () {
     return this.investments.marketWeight;
 };
 
+Industry.prototype.getLobbyingWeight = function () {
+    return this.investments.lobbying;
+};
+
 Industry.prototype.purchaseGoods = function (amount) {
     this.cash += amount;
 };
@@ -220,12 +233,18 @@ Industry.prototype.collectSalaries = function () {
     return salaries;
 };
 
+Industry.prototype.payGovernmentContract = function (amount) {
+    this.cash += amount;
+};
+
 
 // this is a world
-function World(worldName) {
+function World(worldName, oneDollarOneVote) {
     var that = this;
     this.worldName = worldName;
     this.population = [];
+    // how we vote
+    this.oneDollarOneVote = oneDollarOneVote;
     // industries
     this.industries = [
         new Industry('wood'),
@@ -301,6 +320,89 @@ World.prototype.distributeSalaries = function () {
         // let's keep it to the governement
         this.cash += salaries;
     }
+};
+
+World.prototype.distributeGovernmentMoneyToCorporations = function (amount) {
+    var that = this,
+        totalInvestments = 0;
+    // reset the market weight of all industries
+    this.industries.forEach(function (ind) {
+        totalInvestments += ind.getLobbyingWeight();
+    });
+    // if noone spent on lobbying, distribute equally to all industries
+    if (totalInvestments === 0) {
+        amount /= this.industries.length;
+        this.industries.forEach(function (ind) {
+            ind.cash += amount;
+        });
+
+    } else {
+        // now that we know the total investment we can
+        // redistribute it
+        amount /= totalInvestments;
+        this.industries.forEach(function (ind) {
+            ind.payGovernmentContract(ind.lobbying * amount);
+        });
+    }
+};
+
+// this is the fun part, how the government acts on the economy
+World.prototype.taxation = function () {
+    var taxTheRich = 0,
+        taxThePoor = 0,
+        redistributeToCorporations = 0,
+        maxIncome = 0,
+        incomeWeight = 0,
+        taxes = 0,
+        voteWeight = 0,
+        toCorporations = 0,
+        getVoteWeight = this.oneDollarOneVote ?
+            function (person) { return person.income + person.cash + person.savings + 1; } :
+            function (person) { return 1; };
+
+    // compute the taxation profile
+    this.population.forEach(function (person) {
+        var weight = getVoteWeight(person);
+        taxTheRich += person.vote.taxTheRich * weight;
+        taxThePoor += person.vote.taxThePoor * weight;
+        redistributeToCorporations += person.vote.redistributeToCorporations * weight;
+        voteWeight += weight;
+        if (person.income > maxIncome) {
+            maxIncome = person.income;
+        }
+    });
+    taxTheRich /= voteWeight;
+    taxThePoor /= voteWeight;
+    redistributeToCorporations /= redistributeToCorporations;
+
+    // collect taxes
+    if (maxIncome > 0) {
+        // collect from everyone
+        this.population.forEach(function (person) {
+            var tax = (person.income * taxTheRich +
+                (maxIncome - person.income) * taxThePoor) * person.income / maxIncome;
+            taxes += tax;
+            person.taxIncome(tax);
+        });
+    }
+    // keep some stats
+    this.statistics.incomeTaxes = taxes;
+    this.statistics.educationTaxes = this.cash;
+    this.statistics.taxTheRich = taxTheRich;
+    this.statistics.taxThePoor = taxThePoor;
+    // redistribute
+    taxes += this.cash;
+    toCorporations = taxes * redistributeToCorporations;
+    taxes = taxes - toCorporations;
+    taxes /= this.population.length;
+    this.cash = 0;
+
+    // equally distribute to all people
+    this.population.forEach(function (player) {
+        player.payGovernmentServices(taxes);
+    });
+    // distribute redistributeToCorporations to the prorata of lobbying
+    this.distributeGovernmentMoneyToCorporations(toCorporations);
 };
 
 // this will perform an iteration of the simulation
