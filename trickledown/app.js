@@ -1,19 +1,12 @@
-
+/*globals module, __dirname */
 /**
  * Module dependencies.
  */
 
-/*globals module, __dirname */
-
 var express = require('express'),
-    mongodb = require('mongodb'),
-    async = require('async'),
-    Db = mongodb.Db,
-    Server = mongodb.Server,
-    client = new Db('trickledown', new Server("127.0.0.1", 27017, {})),
-    World = require('./simulation/engine').World,
     app = module.exports = express.createServer(),
-    nko = require('nko')('HDMpimMItHdc/S+8');
+    nko = require('nko')('HDMpimMItHdc/S+8'),
+    createSimulation = require('./simulation/simulation').createSimulation;
 
 // Configuration
 app.configure(function () {
@@ -40,31 +33,13 @@ app.get('/', function (req, res) {
     });
 });
 
-// this will be fun at some point
-/*
-// open the db once
-client.open(function (err) {
-    if (err) {
-        console.log('failed to create db, exiting');
-    } else {
-        var worlds = [ 'odov', 'opov' ];
-        async.map(worlds, function (world, callback) {
-            World.createFromDb(client, world, callback);
-        }, function (err, worlds) {
-            if (err) {
-                console.log('failed to load worlds');
-            }
-            // we need to
-            // start the server
-            app.listen(3000);
-            console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
-        });
-    }
+createSimulation(function (err, simulation) {
+    simulation.start();
+    // we should add the simulation to the app
+    // ... right here FIXME
+
+    // start the server
+    //app.listen(3000);
+    //console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 });
-*/
-// but for now, I must make the world work
-(function () {
-    var w = new World('test');
-    w.addNewPlayer('alaskagirl');
-    w.iterate();
-}());
+

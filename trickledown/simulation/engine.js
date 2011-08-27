@@ -277,6 +277,8 @@ function World(worldName, oneDollarOneVote) {
     var that = this;
     this.worldName = worldName;
     this.population = [];
+    this.cash = 0;
+    this.spentOnGoods = 0;
     // how we vote
     this.oneDollarOneVote = oneDollarOneVote;
     // industries
@@ -405,9 +407,10 @@ World.prototype.taxation = function () {
             maxIncome = person.income;
         }
     });
+
     taxTheRich /= voteWeight;
     taxThePoor /= voteWeight;
-    redistributeToCorporations /= redistributeToCorporations;
+    redistributeToCorporations /= voteWeight;
 
     // collect taxes
     if (maxIncome > 0) {
@@ -425,11 +428,14 @@ World.prototype.taxation = function () {
     this.statistics.taxTheRich = taxTheRich;
     this.statistics.taxThePoor = taxThePoor;
     // redistribute
-    taxes += this.cash;
+    taxes += this.cash; // education money
+
     toCorporations = taxes * redistributeToCorporations;
     taxes = taxes - toCorporations;
     taxes /= this.population.length;
     this.cash = 0;
+
+
 
     // equally distribute to all people
     this.population.forEach(function (player) {
@@ -489,30 +495,38 @@ World.prototype.addNewPlayer = function (username) {
     this.population.push(p);
     return p;
 };
+// computes the total amount of money in the world
+World.prototype.getTotalCash = function () {
+    var total = 0;
+    this.population.forEach(function (p) {
+        total += (p.cash + p.savings + p.income);
+    });
+    forEachProperty(this.industries, function (p) {
+        total += p.cash;
+    });
+    total += this.spentOnGoods;
+    total += this.cash;
+    return total;
+};
 // dump the world to mongo (needed before we shutdown, and maybe periodically)
 World.prototype.snapShotToDb = function (db, callback) {
 
 };
 // note: this will only be called at the startup when the world is
 // loading (no simulation while loading)
-World.createFromDb = function (db, worldName, callback) {
+World.prototype.load = function (collection, callback) {
     // create an empty world
-    var that = new World(worldName);
+    var that = this;
 
-    db.collection('players', function (err, coll) {
-        if (err) {
-            return callback(err);
-        }
-        // find all objects in the specified world
-        coll.find({ world: worldName }, function (err, cursor) {
-            cursor.each(function (err, player) {
-                // we are done
-                if (player === null) {
-                    return callback(null, that);
-                }
-                // otherwise, create a player and add it
-                that.population.add(new Player(player));
-            });
+    // find all objects in the specified world
+    collection.find({ world: this.worldName }, function (err, cursor) {
+        cursor.each(function (err, player) {
+            // we are done
+            if (player === null) {
+                return callback(null, that);
+            }
+            // otherwise, create a player and add it
+            that.population.add(new Player(player));
         });
     });
 };
