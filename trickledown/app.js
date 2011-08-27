@@ -35,6 +35,7 @@ app.get('/', function (req, res) {
 
 createSimulation(function (err, simulation) {
     simulation.start();
+    simulation.close();
     // we should add the simulation to the app
     // ... right here FIXME
 

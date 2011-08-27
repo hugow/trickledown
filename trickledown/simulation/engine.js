@@ -112,7 +112,7 @@ function Player(username, password, worldName, o) {
                 redistributeToCorporations: 0.2
             },
             education: 0,
-            cash: 0,
+            cash: 100000,
             income: 0,
             savings: 0,
             portfolio: {
@@ -187,7 +187,7 @@ Player.prototype.spend = function (purchaseSystem) {
         // at this time, taxes should have been paid already
         education = this.cash * howToSpend.education;
         goods = this.cash * howToSpend.goods;
-        stocks = this.cash * howToSpend.savings;
+        stocks = this.cash * howToSpend.stocks;
         // update what we have
         this.savings = this.cash - (education + goods + stocks);
         this.cash = 0;
@@ -197,7 +197,7 @@ Player.prototype.spend = function (purchaseSystem) {
         this.savings += this.portfolio.invest(purchaseSystem, stocks);
         // make sure the money goes somewhere
         purchaseSystem.buyEducation(education);
-        purchaseSystem.buyGoods(goods * howToSpend.goods);
+        purchaseSystem.buyGoods(goods);
     }
 };
 
@@ -489,13 +489,12 @@ World.prototype.taxation = function () {
 
 // this will perform an iteration of the simulation
 World.prototype.iterate = function () {
-    console.log('[iterate');
+    console.log('[iterate ' + this.population.length);
     var that = this;
     // useless case
     if (this.population.length === 0) {
         return;
     }
-
     // NOTE: the result of a simulation cycle is that none of the money is
     // lost and that all of the money is in the hand of players. So this
     // (all the money in the hand pf players) is also the initial state.
@@ -572,7 +571,7 @@ World.prototype.load = function (collection, callback) {
             }
             // otherwise, create a player and add it
             var p = new Player(player.username, player.passwrd, player.world, player);
-            that.population.add(p);
+            that.population.push(p);
             that.populationIndex[p.username] = p;
         });
     });

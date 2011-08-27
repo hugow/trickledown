@@ -139,8 +139,9 @@ Simulation.prototype.generateFakeUsers = function (
 Simulation.prototype.load = function (callback) {
     var that = this;
     async.map(
-        this.worlds,
-        function (world, callback) {
+        Object.keys(this.worlds),
+        function (worldName, callback) {
+            var world = that.worlds[worldName];
             world.load(that.playerCol, callback);
         },
         callback
