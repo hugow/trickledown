@@ -152,10 +152,35 @@ Player.prototype.spend = function (purchaseSystem) {
     }
 };
 
+// this is an industry
+function Industry(sector) {
+    this.sector = sector;
+    this.cash = 0;
+}
+Industry.prototype.invest = function (amount) {
+    this.cash += amount;
+};
+
 // this is a world
 function World(worldName) {
+    var that = this;
     this.worldName = worldName;
     this.population = [];
+    // industries
+    this.industries = [
+        new Industry('wood'),
+        new Industry('metal'),
+        new Industry('drugs'),
+        new Industry('electronics'),
+        new Industry('cars'),
+        new Industry('cinema'),
+        new Industry('software')
+    ];
+    // (quickly find by name)
+    this.industryIndex = {};
+    this.industries.forEach(function (ind) {
+        that.industryIndex[ind.sector] = ind;
+    });
     // keep track of some stock, per iteration cycle
     this.statistics = {};
 }
@@ -171,8 +196,8 @@ World.prototype.buyGoods = function (amount) {
     this.spentOnGoods += amount;
 };
 // invest in some industry
-World.prototype.invest = function (industry, amount) {
-// FIXME: put the money somewhere
+World.prototype.invest = function (sector, amount) {
+    this.industryIndex[sector].invest(amount);
 };
 // this will perform an iteration of the simulation
 World.prototype.iterate = function () {
@@ -192,7 +217,8 @@ World.prototype.iterate = function () {
         person.spend(that);
     });
 
-    // 2. take the money spent by players and distribute it to economic sectors
+    // 2. take the money spent by players on goods and distribute it to economic
+    // sectors (i.e. share the purchases between the industrial sectors)
 
     // 3. make the industries distribute salaries
 
