@@ -160,6 +160,14 @@ Player.prototype.spend = function (purchaseSystem) {
     }
 };
 
+Player.prototype.getEducation = function () {
+    return this.education;
+};
+
+Player.prototype.paySalary = function (amount) {
+    this.salaryIncome = amount;
+};
+
 // this is an industry
 function Industry(sector) {
     this.sector = sector;
@@ -177,7 +185,8 @@ Industry.prototype.invest = function (reason, amount, integratedAmount) {
     this.investments[reason] += integratedAmount;
     // NOTE: lobbying money should go to some government individuals...
     // this... is absurdly complicated, we will leave this money
-    // as cash in the industry
+    // as cash in the industry... we will put this money on our payroll...
+    // and increase salaries accordingly
 };
 
 Industry.prototype.updateMarketWeight = function () {
@@ -194,6 +203,21 @@ Industry.prototype.getMarketWeight = function () {
 
 Industry.prototype.purchaseGoods = function (amount) {
     this.cash += amount;
+};
+
+Industry.prototype.collectSalaries = function () {
+    var investments = this.investments,
+        tot = investments.size + investments.technology + investments.lobbying,
+        payroll = investments.size + investments.lobbying,
+        salaries;
+    if (tot > 0) {
+        salaries = this.cash * payroll / tot;
+    } else {
+        // no investments... kinda weird.. return everything as salaries
+        salaries = this.cash;
+    }
+    this.cash -= salaries;
+    return salaries;
 };
 
 
@@ -257,6 +281,28 @@ World.prototype.purchaseIndustryGoods = function () {
     }
 };
 
+World.prototype.distributeSalaries = function () {
+    var salaries = 0,
+        totEducation = 0;
+    // lets compute all the money available for salaries
+    this.industries.forEach(function (ind) {
+        salaries += ind.collectSalaries();
+    });
+    // now that we have this money, we must distribute it to the population
+    this.population.forEach(function (player) {
+        totEducation += player.getEducation();
+    });
+    if (totEducation > 0) {
+        this.population.forEach(function (player) {
+            player.paySalary(salaries * player.getEducation() / totEducation);
+        });
+    } else {
+        // the money must go somewhere
+        // let's keep it to the governement
+        this.cash += salaries;
+    }
+};
+
 // this will perform an iteration of the simulation
 World.prototype.iterate = function () {
     console.log('[iterate');
@@ -285,6 +331,7 @@ World.prototype.iterate = function () {
     this.purchaseIndustryGoods();
 
     // 3. make the industries distribute salaries
+    this.distributeSalaries();
 
     // 4. apply taxation on salaries
 
