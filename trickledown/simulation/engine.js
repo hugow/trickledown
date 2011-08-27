@@ -25,6 +25,14 @@ function Portfolio(o) {
         that[prop] = value;
     });
 }
+Portfolio.reasons = [
+    'technology',   // increase market share without increasing salaries
+    'size',         // increase market share by growing (increasing salaries)
+    'lobbying'      // increase the share of grants (this does not increase
+                    // market share but increases government 'help' to
+                    // the industries)
+];
+
 // (this determines how to split the new money between existing accounts)
 // (the sum of all weights does not need to be 1, the percentages will be
 // automatically computed)
@@ -75,7 +83,7 @@ Portfolio.prototype.invest = function (purchaseSystem, amount) {
             } else {
                 this.stocks[sector][reason] += toInvest;
             }
-            purchaseSystem.invest(sector, toInvest);
+            purchaseSystem.invest(sector, reason, toInvest, this.stocks[sector][reason]);
         });
     });
     // things must balance... and someone could have nothing in his
@@ -157,9 +165,37 @@ function Industry(sector) {
     this.sector = sector;
     this.cash = 0;
 }
-Industry.prototype.invest = function (amount) {
+Industry.prototype.resetInvestmentData = function () {
+    var that = this;
+    this.investments = {};
+    Portfolio.reasons.forEach(function (reason) {
+        that.investments[reason] = 0;
+    });
+};
+Industry.prototype.invest = function (reason, amount, integratedAmount) {
+    this.cash += amount;
+    this.investments[reason] += integratedAmount;
+    // NOTE: lobbying money should go to some government individuals...
+    // this... is absurdly complicated, we will leave this money
+    // as cash in the industry
+};
+
+Industry.prototype.updateMarketWeight = function () {
+    // let's say it costs more in technology to get
+    var investments = this.investments;
+    investments.marketWeight =
+        investments.size +
+        investments.technology * 0.5;
+};
+
+Industry.prototype.getMarketWeight = function () {
+    return this.investments.marketWeight;
+};
+
+Industry.prototype.purchaseGoods = function (amount) {
     this.cash += amount;
 };
+
 
 // this is a world
 function World(worldName) {
@@ -184,6 +220,7 @@ function World(worldName) {
     // keep track of some stock, per iteration cycle
     this.statistics = {};
 }
+// the 'purchase' interface (begin)
 // buys some education
 World.prototype.buyEducation = function (amount) {
     this.statistics.totalSpentOnEducation += amount;
@@ -196,9 +233,30 @@ World.prototype.buyGoods = function (amount) {
     this.spentOnGoods += amount;
 };
 // invest in some industry
-World.prototype.invest = function (sector, amount) {
-    this.industryIndex[sector].invest(amount);
+World.prototype.invest = function (sector, reason, amount, integratedAmount) {
+    this.industryIndex[sector].invest(reason, amount, integratedAmount);
 };
+// the 'purchase' interface (end)
+
+// this will distribute the money spent on goods
+World.prototype.purchaseIndustryGoods = function () {
+    var totalMarketWeight = 0,
+        moneyToDistribute = this.spentOnGoods;
+    this.spentOnGoods = 0;
+    this.industries.forEach(function (ind) {
+        ind.updateMarketWeight();
+        totalMarketWeight += ind.getMarketWeight();
+    });
+    if (totalMarketWeight !== 0) {
+        this.industries.forEach(function (ind) {
+            ind.purchaseGoods(moneyToDistribute * ind.getMarketWeight() / totalMarketWeight);
+        });
+    } else {
+        // the money must go somewhere
+        this.cash += moneyToDistribute;
+    }
+};
+
 // this will perform an iteration of the simulation
 World.prototype.iterate = function () {
     console.log('[iterate');
@@ -212,6 +270,11 @@ World.prototype.iterate = function () {
     // lost and that all of the money is in the hand of players. So this
     // (all the money in the hand pf players) is also the initial state.
 
+    // 0. reset invesment data in all industries
+    this.industries.forEach(function (ind) {
+        ind.resetInvestmentData();
+    });
+
     // 1. make everyone spend his money according to his priorities
     this.population.forEach(function (person) {
         person.spend(that);
@@ -219,10 +282,11 @@ World.prototype.iterate = function () {
 
     // 2. take the money spent by players on goods and distribute it to economic
     // sectors (i.e. share the purchases between the industrial sectors)
+    this.purchaseIndustryGoods();
 
     // 3. make the industries distribute salaries
 
-    // 4. apply taxation
+    // 4. apply taxation on salaries
 
     // 5. distribute dividends
 
