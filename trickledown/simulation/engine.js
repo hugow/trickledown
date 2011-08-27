@@ -24,6 +24,9 @@ function Portfolio(o) {
     forEachProperty(o, function (value, prop) {
     });
 }
+Portfolio.prototype.invest = function (purchaseSystem, amount) {
+    // FIXME: put the money somewhere
+};
 
 // this is a game player (i.e not a user but a player)
 function Player(o) {
@@ -69,12 +72,90 @@ function Player(o) {
         this.id = o._id;
     }
 }
+Player.prototype.spend = function (purchaseSystem) {
+    var education, goods, stocks, howToSpend = this.howToSpend;
+    // we cash our savings
+    this.cash += this.savings;
+    this.savings = 0;
+
+    // if we do have some cash
+    if (this.cash > 0) {
+        // at this time, taxes should have been paid already
+        education = this.cash * howToSpend.education;
+        goods = this.cash * howToSpend.goods;
+        stocks = this.cash * howToSpend.savings;
+        // update what we have
+        this.savings = this.cash - (education + goods + stocks);
+        this.cash = 0;
+        this.education += education;
+        this.portfolio.invest(purchaseSystem);
+        // make sure the money goes somewhere
+        purchaseSystem.buyEducation(education);
+        purchaseSystem.buyGoods(this.cash * howToSpend.goods);
+    }
+};
 
 // this is a world
 function World(worldName) {
     this.worldName = worldName;
     this.population = [];
+    // keep track of some stock, per iteration cycle
+    this.statistics = {};
 }
+// buys some education
+World.prototype.buyEducation = function (amount) {
+    this.statistics.totalSpentOnEducation += amount;
+    // this money goes to the government or 'world', could also be an industry
+    this.cash += amount;
+};
+// buys some goods
+World.prototype.buyGoods = function (amount) {
+    this.statistics.totalSpentOnGoods += amount;
+    this.spentOnGoods += amount;
+};
+// invest in some industry
+World.prototype.invest = function (industry, amount) {
+// FIXME: put the money somewhere
+};
+// this will perform an iteration of the simulation
+World.prototype.iterate = function () {
+    console.log('[iterate');
+    var that = this;
+    // useless case
+    if (this.population.length === 0) {
+        return;
+    }
+
+    // NOTE: the result of a simulation cycle is that none of the money is
+    // lost and that all of the money is in the hand of players. So this
+    // (all the money in the hand pf players) is also the initial state.
+
+    // 1. make everyone spend his money according to his priorities
+    this.population.forEach(function (person) {
+        person.spend(that);
+    });
+
+    // 2. take the money spent by players and distribute it to economic sectors
+
+    // 3. make the industries distribute salaries
+
+    // 4. apply taxation
+
+    // 5. distribute dividends
+
+    // 6. amortize investments
+
+    console.log('iterate]');
+};
+// creates a player (FIXME: the player will have to be added to the db?
+// maybe not: this only happens when we add a new user... so...
+// the async thing could be done after
+World.prototype.addNewPlayer = function (username) {
+    var p = new Player();
+    this.population.push(p);
+    return p;
+};
+// dump the world to mongo (needed before we shutdown, and maybe periodically)
 World.prototype.snapShotToDb = function (db, callback) {
 
 };

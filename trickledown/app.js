@@ -39,6 +39,8 @@ app.get('/', function (req, res) {
     });
 });
 
+// this will be fun at some point
+/*
 // open the db once
 client.open(function (err) {
     if (err) {
@@ -58,4 +60,10 @@ client.open(function (err) {
         });
     }
 });
-
+*/
+// but for now, I must make the world work
+(function () {
+    var w = new World('test');
+    w.addNewPlayer('alaskagirl');
+    w.iterate();
+}());
