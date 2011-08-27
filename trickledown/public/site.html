@@ -1,0 +1,91 @@
+<html>
+<head>
+<link rel="StyleSheet" href="stylesheets/site.css" type="text/css" media="screen">
+<link type="text/css" href="stylesheets/ui-lightness/jquery-ui-1.8.16.custom.css" rel="Stylesheet" />
+<script type="text/javascript" src="javascripts/jquery-1.6.2.min.js"></script>
+<script type="text/javascript" src="javascripts/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript" src="javascripts/gcharts/jquery.gchart.js"></script>
+<script>
+    $(document).ready(function () {
+        window.console.log('xx1');
+        $( "#tabs" ).tabs();
+
+        function updateHistogram(world, histogram) {
+            $('div.' + world + ' div.gugchart').gchart({
+                type: 'line',
+                dataLabels: histogram.dataLabels,
+                legend: 'right',
+                series: [
+                    $.gchart.series('Money (%)', histogram.values, 'green')
+                ]
+            });
+        }
+        function updateRanking() {
+        }
+
+        function setupSimulation () {
+            var requests = [];
+            // set an interval to reload the world (we know it updates constantly,
+            // there is no point in being notified)
+            setInterval(function () {
+                // abort all pending ajax requests
+                requests.forEach(function (req) {
+                    req.abort();
+                });
+                // queue more requests
+                requests.push($.get('/worlds/opov',
+                    function (data, textStatus, jqXHR) {
+                        window.console.log(data);
+                        updateHistogram('opov', {
+                            dataLabels: [ '>x', '10000', 'abcd'],
+                            values: [0.2, 0.5, 0.3]
+                        });
+                    },
+                    'json'
+                ));
+            }, 3300);
+        }
+        setupSimulation();
+    });
+</script>
+</head>
+<body>
+    <div id = 'outerzone'>
+        <div id = 'appzone'>
+            <div id = 'headerzone'>
+                hello
+            </div>
+            <div id = 'mainzone'>
+
+                <div class="demo">
+                    <div id="tabs">
+	                    <ul>
+		                    <li><a href="#tabs-1">World</a></li>
+		                    <li><a href="#tabs-2">Play</a></li>
+		                    <li><a href="#tabs-3">About</a></li>
+	                    </ul>
+	                    <div id="tabs-1">
+	                        <div class='opov'>
+	                            One man one vote
+	                            <div class='gugchart'> </div>
+
+	                        </div>
+	                        <div class='odov'>
+	                            One dollar one vote
+	                        </div>
+	                    </div>
+	                    <div id="tabs-2">
+		                    <p>Morbi tincidunt, dui sit amet facilisis feugiat, odio metus gravida ante, ut pharetra massa metus id nunc. Duis scelerisque molestie turpis. Sed fringilla, massa eget luctus malesuada, metus eros molestie lectus, ut tempus eros massa ut dolor. Aenean aliquet fringilla sem. Suspendisse sed ligula in ligula suscipit aliquam. Praesent in eros vestibulum mi adipiscing adipiscing. Morbi facilisis. Curabitur ornare consequat nunc. Aenean vel metus. Ut posuere viverra nulla. Aliquam erat volutpat. Pellentesque convallis. Maecenas feugiat, tellus pellentesque pretium posuere, felis lorem euismod felis, eu ornare leo nisi vel felis. Mauris consectetur tortor et purus.</p>
+	                    </div>
+	                    <div id="tabs-3">
+		                    <p>This game blabla bla</p>
+	                    </div>
+                    </div>
+
+                </div><!-- End demo -->
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>
