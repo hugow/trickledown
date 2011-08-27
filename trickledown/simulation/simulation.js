@@ -19,12 +19,24 @@ function Simulation(dbClient, userCol, playerCol) {
     };
 }
 Simulation.prototype.close = function () {
+    if (this.interval) {
+        clearInterval(this.interval);
+        delete this.interval;
+    }
+
     this.dbClient.close();
 };
 Simulation.prototype.start = function () {
-    console.log('simulation start');
-    this.worlds.odov.iterate();
-    console.log('Total cash ' + this.worlds.odov.getTotalCash());
+    var that = this;
+    this.interval = setInterval(function () {
+        console.log('.. iterate ..');
+        that.iterate();
+    }, 2000);
+};
+Simulation.prototype.iterate = function () {
+    forEachProperty(this.worlds, function (world) {
+        world.iterate();
+    });
 };
 Simulation.prototype.createUser = function (
     username,
@@ -80,15 +92,31 @@ Simulation.prototype.updatePlayer = function (
     }
 };
 Simulation.prototype.getWorldState = function (
-    username,
-    password,
-    world
+    worldName
 ) {
+    var state, world = this.worlds[worldName];
+    if (world) {
+        state = { totalCash: world.getTotalCash() };
+    }
+    return state;
 };
 Simulation.prototype.getPlayerState = function (
+    worldName,
+    username
+) {
+    var state, world = this.worlds[worldName], player;
+    if (world) {
+        player = world.getPlayer(username);
+        if (player) {
+            state = { cash: player.cash };
+        }
+    }
+    return state;
+};
+Simulation.prototype.getPlayerProfiles = function (
+    worldName,
     username,
-    password,
-    world
+    password
 ) {
 };
 // this is used to create a fake world, to allow the demonstration

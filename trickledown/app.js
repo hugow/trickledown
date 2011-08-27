@@ -29,18 +29,46 @@ app.configure('production', function () {
 // Routes
 app.get('/', function (req, res) {
     res.render('index', {
-        title: 'Express'
+        title: 'Express ' + app.settings.stuff
     });
 });
 
+/// get the profiles of a specific user
+app.get('/worlds/:name/players/:username/profiles', function (req, res) {
+});
+
+// set the profiles of a specific user
+app.post('/worlds/:name/players/:username/profiles', function (req, res) {
+});
+
+// get the state of a specific user
+//http://127.0.0.1:3000/worlds/opov/players/NPC1
+app.get('/worlds/:name/players/:username', function (req, res) {
+    var sim = app.settings.simulationEngine,
+        state = sim.getPlayerState(req.params.name, req.params.username);
+    if (state === undefined) {
+        throw 'Unknown username: ';
+    }
+    res.send(JSON.stringify(state));
+});
+
+// get the state of the world
+app.get('/worlds/:name', function (req, res) {
+    var sim = app.settings.simulationEngine,
+        state = sim.getWorldState(req.params.name);
+    res.send(JSON.stringify(state));
+});
+
+
 createSimulation(function (err, simulation) {
     simulation.start();
-    simulation.close();
+    app.set('simulationEngine', simulation);
+    app.set('stuff', 'stufxxf');
     // we should add the simulation to the app
     // ... right here FIXME
 
     // start the server
-    //app.listen(3000);
-    //console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+    app.listen(3000);
+    console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 });
 
