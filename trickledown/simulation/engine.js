@@ -22,10 +22,65 @@ function forEachProperty(object, f) {
 function Portfolio(o) {
     var that = this;
     forEachProperty(o, function (value, prop) {
+        that[prop] = value;
     });
 }
+// (this determines how to split the new money between existing accounts)
+// (the sum of all weights does not need to be 1, the percentages will be
+// automatically computed)
+// (sector is the industry name... the name of the industrial sector)
+Portfolio.prototype.setInvestmentWeight = function (sector, reason, weight) {
+    var total = 0;
+    if (this.priorities[sector] === undefined) {
+        this.priorities[sector] = {
+            sector: sector,
+            reasons: {}
+        };
+    }
+    this.priorities[sector].reasons[reason] = {
+        value: weight
+    };
+    // compute PERCENTAGES
+    // (make sure the sum of all our priorities is 1 at most)
+    // (it could also be zero if we invest in nothing)
+    // compute the total
+    forEachProperty(this.priorities, function (p) {
+        forEachProperty(p.reasons, function (r) {
+            total += r.value;
+        });
+    });
+    if (total !== 0) {
+        // compute the percentages
+        forEachProperty(this.priorities, function (p) {
+            forEachProperty(p.reasons, function (r) {
+                r.percent = r.value / total;
+            });
+        });
+    }
+};
 Portfolio.prototype.invest = function (purchaseSystem, amount) {
-    // FIXME: put the money somewhere
+    // put the money somewhere according to the investment
+    // percentages
+    var that = this, totalInvested = 0;
+    forEachProperty(this.priorities, function (p, sector) {
+        forEachProperty(p.reasons, function (r, reason) {
+            var toInvest = amount * r.percent;
+            totalInvested += toInvest;
+
+            if (that.stocks[p.sector] === undefined) {
+                that.stocks[sector] = {};
+            }
+            if (that.stocks[sector][reason] === undefined) {
+                that.stocks[sector][reason] = toInvest;
+            } else {
+                this.stocks[sector][reason] += toInvest;
+            }
+            purchaseSystem.invest(sector, toInvest);
+        });
+    });
+    // things must balance... and someone could have nothing in his
+    // profile... so the money should not dissappear in this case
+    return amount - totalInvested;
 };
 
 // this is a game player (i.e not a user but a player)
@@ -88,10 +143,12 @@ Player.prototype.spend = function (purchaseSystem) {
         this.savings = this.cash - (education + goods + stocks);
         this.cash = 0;
         this.education += education;
-        this.portfolio.invest(purchaseSystem);
+        // if for some reason we could not invest (invalid investment percentages,
+        // we move the money to the savings... for now)
+        this.savings += this.portfolio.invest(purchaseSystem, stocks);
         // make sure the money goes somewhere
         purchaseSystem.buyEducation(education);
-        purchaseSystem.buyGoods(this.cash * howToSpend.goods);
+        purchaseSystem.buyGoods(goods * howToSpend.goods);
     }
 };
 
