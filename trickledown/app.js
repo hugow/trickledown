@@ -12,7 +12,8 @@ var express = require('express'),
     Server = mongodb.Server,
     client = new Db('trickledown', new Server("127.0.0.1", 27017, {})),
     World = require('./simulation/engine').World,
-    app = module.exports = express.createServer();
+    app = module.exports = express.createServer(),
+    nko = require('nko')('HDMpimMItHdc/S+8');
 
 // Configuration
 app.configure(function () {

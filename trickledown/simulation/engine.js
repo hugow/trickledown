@@ -436,6 +436,7 @@ World.prototype.iterate = function () {
     this.distributeSalaries();
 
     // 4. apply taxation on salaries
+    this.taxation();
 
     // 5. distribute dividends
 
