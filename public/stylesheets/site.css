@@ -33,7 +33,9 @@ div.smalltitle {
     text-align: center;
     font-family:sans-serif;
 }
-
+div.worldinner {
+    margin: 20px;
+}
 div.odov {
     position: absolute;
     right: 5px;
@@ -51,13 +53,13 @@ div.opov {
 }
 
 div.worldchart1 {
-    width: 370px;
+    width: 330px;
     height: 280px;
     margin-left: 10px;
 }
 
 div.worldchart2 {
-    width: 370px;
+    width: 330px;
     height: 280px;
     margin-left: 10px;
 }

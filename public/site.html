@@ -7,7 +7,6 @@
 <script type="text/javascript" src="javascripts/gcharts/jquery.gchart.js"></script>
 <script>
     $(document).ready(function () {
-        window.console.log('xx1');
         $( "#tabs" ).tabs();
 
         function updateHistogram(world, histogram) {
@@ -39,8 +38,6 @@
                 str += '<tr><td>' + values[i].username + '</td><td>' + values[i].value + '$</td></tr>';
             }
             str += '</table>';
-            console.log(str);
-            console.log(values);
             $('div.' + world + ' div.playerranking').html(str);
         }
 
@@ -50,11 +47,90 @@
                 str += '<tr><td>' + values[i].name + '</td><td>' + values[i].value + '$</td></tr>';
             }
             str += '</table>';
-            console.log(str);
-            console.log(values);
             $('div.' + world + ' div.otherstats').html(str);
         }
 
+        function createSliderBox(containerSelector, boxdescr) {
+            var g = $(containerSelector).append('<div class = "sliderbox"></div>'),
+                result = {};
+            result.sliders = {};
+            // the title
+            g.append('<h2>' + boxdescr.title + '<h2>');
+            // for all settings
+            boxdescr.settings.forEach(function (setting) {
+                var fn = setting.fieldName, sl;
+                g.append('<p>' + setting.label + '</p>');
+                sl = g.append('<div></div>').children().last().slider({
+                    max: 100,
+                    stop: function(event, ui) { result.changed(); }
+                });
+                result.sliders[fn] = sl;
+            });
+
+            result.setValues = function (o) {
+                var p;
+                for (p in o) {
+                    if (o.hasOwnProperty(p)) {
+                        result.sliders[p].slider('value', o[p] * 100);
+                    }
+                }
+            };
+            result.getValues = function () {
+                var o = { }, p, rs = result.sliders;
+                for (p in rs) {
+                    if (rs.hasOwnProperty(p)) {
+                        o[p] = rs[p].slider('value') / 100;
+                    }
+                }
+                return o;
+            };
+            result.changed = function () {
+                console.log('----changed --');
+            };
+
+            return result;
+        }
+
+        function createUserSliders(world) {
+            var voting = {
+                    title: "Voting Profile",
+                    settings: [
+                        { label: "Tax % for the richest", fieldName: "taxTheRich" },
+                        { label: "Tax % for the poorest", fieldName: "taxThePoor" },
+                        { label: "Redistribute to corporations", fieldName: "redistributeToCorporations" }
+                    ]
+                },
+                investing = {
+                    title: "Spending Profile",
+                    settings: [
+                        { label: "Spend on education", fieldName: "education" },
+                        { label: "Spend on savings", fieldName: "savings" },
+                        { label: "Spend on invesments", fieldName: "stocks" },
+                        { label: "Spend on goods", fieldName: "goods" }
+                    ]
+                },
+                stocks = {
+                    title: "tbd",
+                    settings: [
+                        { label: "Research", fieldName: "technology" },
+                        { label: "Growth & Salaries", fieldName: "size" },
+                        { label: "Lobbying", fieldName: "lobbying" }
+                    ]
+                },
+                stockTypes = [ "wood", "metal", "drugs", "electronics", "car", "cinema", "sofware" ],
+                selector = '#tabs-2 div.' + world + ' div.worldinner';
+                results = {};
+console.log('here');
+            results.voting = createSliderBox(selector, voting);
+            results.investing = createSliderBox(selector, investing);
+            results.stocks = {};
+            stockTypes.forEach(function (stock) {
+                stocks.title = "Stock: " + stock;
+                results.stocks[stock] = createSliderBox(selector, stocks);
+            });
+        }
+        createUserSliders('opov');
+        createUserSliders('odov');
 
         function setupSimulation () {
             var requests = [];
@@ -68,7 +144,6 @@
                 // queue more requests
                 requests.push($.get('/worlds/opov',
                     function (data, textStatus, jqXHR) {
-                        window.console.log(data);
                         updateHistogram('opov', data.moneyDistribution);
                         updateRanking('opov', data.topPlayers);
                         updateOtherStats('opov', [ { name: 'test', value: 'v' }]);
@@ -78,7 +153,6 @@
                 ));
                 requests.push($.get('/worlds/odov',
                     function (data, textStatus, jqXHR) {
-                        window.console.log(data);
                         updateHistogram('odov', data.moneyDistribution);
                         updateRanking('odov', data.topPlayers);
                         updateOtherStats('odov', data.statistics);
@@ -125,89 +199,81 @@
 	                        to stay there.</p>
 
 	                        <div class='opov'>
-	                            <h2>One man one vote</h2>
+	                            <div class='worldinner'>
+	                                <h2>One man one vote</h2>
 
-	                            <div class = 'sectioncomment' >
-	                                Top Players
-	                            </div>
-	                            <div class = 'playerranking'>
+	                                <div class = 'sectioncomment' >
+	                                    Top Players
+	                                </div>
+	                                <div class = 'playerranking'>
 
-	                            </div>
+	                                </div>
 
-	                            <div class = 'sectioncomment' >
-	                                Percent of Total Money per Wealth Category
-	                            </div>
-	                            <div class='worldchart1'> </div>
-
-
-	                            <div class = 'sectioncomment' >
-	                                People per Wealth Category
-	                            </div>
-	                            <div class='worldchart2'> </div>
+	                                <div class = 'sectioncomment' >
+	                                    Percent of Total Money per Wealth Category
+	                                </div>
+	                                <div class='worldchart1'> </div>
 
 
-	                            <div class = 'sectioncomment' >
-	                                Other stats
-	                            </div>
-	                            <div class='otherstats'> </div>
+	                                <div class = 'sectioncomment' >
+	                                    People per Wealth Category
+	                                </div>
+	                                <div class='worldchart2'> </div>
 
+
+	                                <div class = 'sectioncomment' >
+	                                    Other stats
+	                                </div>
+	                                <div class='otherstats'> </div>
+                                </div>
 	                        </div>
 	                        <div class='odov'>
-	                            <h2>One dollar one vote</h2>
+	                            <div class='worldinner'>
+	                                <h2>One dollar one vote</h2>
 
-	                            <div class = 'sectioncomment' >
-	                                Top Players
-	                            </div>
-	                            <div class = 'playerranking'>
+	                                <div class = 'sectioncomment' >
+	                                    Top Players
+	                                </div>
+	                                <div class = 'playerranking'>
 
-	                            </div>
+	                                </div>
 
-	                            <div class = 'sectioncomment' >
-	                                Percent of Total Money per Wealth Category
-	                            </div>
-	                            <div class='worldchart1'> </div>
-
-
-	                            <div class = 'sectioncomment' >
-	                                People per Wealth Category
-	                            </div>
-	                            <div class='worldchart2'> </div>
+	                                <div class = 'sectioncomment' >
+	                                    Percent of Total Money per Wealth Category
+	                                </div>
+	                                <div class='worldchart1'> </div>
 
 
-	                            <div class = 'sectioncomment' >
-	                                Other stats
-	                            </div>
-	                            <div class='otherstats'> </div>
+	                                <div class = 'sectioncomment' >
+	                                    People per Wealth Category
+	                                </div>
+	                                <div class='worldchart2'> </div>
 
+
+	                                <div class = 'sectioncomment' >
+	                                    Other stats
+	                                </div>
+	                                <div class='otherstats'> </div>
+                                </div>
 	                        </div>
 	                    </div>
 	                    <div id="tabs-2">
 		                    <p>Use a username and password of your choice
 		                    then control the corresponding character.</p>
-		                    <input type='text'>
-		                    <input type='text'>
+		                    Username <input type='text'>
+		                    Password <input type='text'>
 
                             <div class='opov'>
-	                            <h2>One man one vote</h2>
-	                            <div>
-	                            Voting Profile
-	                            taxThePoor
-	                            taxTheRich
-	                            redistributeToCorporations
-	                            </div>
-	                            <div>
-	                            Spending Profile
-	                            goods
-	                            education
-	                            savings
-	                            investments
-	                            </div>
-	                            <div>
-	                            Investment Profile
-	                            </div>
+                                <div class='worldinner'>
+
+	                                <h2>One man one vote</h2>
+<div id = 'fuck'></div>
+                                </div>
 	                        </div>
                             <div class='odov'>
-	                            <h2>One dollar one vote</h2>
+                                <div class='worldinner'>
+	                                <h2>One dollar one vote</h2>
+	                            </div>
 	                        </div>
 
 
