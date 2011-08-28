@@ -75,15 +75,15 @@ Portfolio.prototype.invest = function (purchaseSystem, amount) {
             var toInvest = amount * r.percent;
             totalInvested += toInvest;
 
-            if (that.stocks[p.sector] === undefined) {
+            if (that.stocks[sector] === undefined) {
                 that.stocks[sector] = {};
             }
             if (that.stocks[sector][reason] === undefined) {
                 that.stocks[sector][reason] = toInvest;
             } else {
-                this.stocks[sector][reason] += toInvest;
+                that.stocks[sector][reason] += toInvest;
             }
-            purchaseSystem.invest(sector, reason, toInvest, this.stocks[sector][reason]);
+            purchaseSystem.invest(sector, reason, toInvest, that.stocks[sector][reason]);
         });
     });
     // things must balance... and someone could have nothing in his
@@ -339,8 +339,19 @@ function World(worldName, oneDollarOneVote) {
         that.industryIndex[ind.sector] = ind;
     });
     // keep track of some stock, per iteration cycle
-    this.statistics = {};
+    this.resetStatistics();
 }
+World.prototype.resetStatistics = function () {
+    this.statistics = {
+        totalSpentOnEducation: 0,
+        totalSpentOnGoods: 0,
+        incomeTaxes: 0,
+        educationTaxes: 0,
+        taxTheRich: 0,
+        taxThePoor: 0,
+        redistributeToCorporations: 0
+    };
+};
 // the 'purchase' interface (begin)
 // buys some education
 World.prototype.buyEducation = function (amount) {
@@ -411,7 +422,7 @@ World.prototype.distributeGovernmentMoneyToCorporations = function (amount) {
     if (totalInvestments === 0) {
         amount /= this.industries.length;
         this.industries.forEach(function (ind) {
-            ind.cash += amount;
+            ind.payGovernmentContract(amount);
         });
 
     } else {
@@ -419,7 +430,7 @@ World.prototype.distributeGovernmentMoneyToCorporations = function (amount) {
         // redistribute it
         amount /= totalInvestments;
         this.industries.forEach(function (ind) {
-            ind.payGovernmentContract(ind.lobbying * amount);
+            ind.payGovernmentContract(ind.getLobbyingWeight() * amount);
         });
     }
 };
@@ -469,27 +480,27 @@ World.prototype.taxation = function () {
     this.statistics.educationTaxes = this.cash;
     this.statistics.taxTheRich = taxTheRich;
     this.statistics.taxThePoor = taxThePoor;
+    this.statistics.redistributeToCorporations = redistributeToCorporations;
+
     // redistribute
     taxes += this.cash; // education money
-
+    this.cash = 0;
     toCorporations = taxes * redistributeToCorporations;
     taxes = taxes - toCorporations;
     taxes /= this.population.length;
-    this.cash = 0;
-
-
 
     // equally distribute to all people
     this.population.forEach(function (player) {
         player.payGovernmentServices(taxes);
     });
+
     // distribute redistributeToCorporations to the prorata of lobbying
     this.distributeGovernmentMoneyToCorporations(toCorporations);
 };
 // ranks all the players
 World.prototype.rankPlayers = function () {
     this.population.sort(function (p1, p2) {
-        return (p1.cash + p1.savings) - (p2.cash + p2.savings);
+        return (p2.cash + p2.savings) - (p1.cash + p1.savings);
     });
     var i;
     for (i = 0; i < this.population.length; i += 1) {
@@ -507,11 +518,13 @@ World.prototype.iterate = function () {
     // NOTE: the result of a simulation cycle is that none of the money is
     // lost and that all of the money is in the hand of players. So this
     // (all the money in the hand pf players) is also the initial state.
+    this.resetStatistics();
 
     // 0. reset invesment data in all industries
     this.industries.forEach(function (ind) {
         ind.resetInvestmentData();
     });
+
     // 1. make everyone spend his money according to his priorities
     this.population.forEach(function (person) {
         person.spend(that);
@@ -519,18 +532,14 @@ World.prototype.iterate = function () {
     // 2. take the money spent by players on goods and distribute it to economic
     // sectors (i.e. share the purchases between the industrial sectors)
     this.purchaseIndustryGoods();
-
     // 3. make the industries distribute salaries
     this.distributeSalaries();
-
     // 4. apply taxation on salaries
     this.taxation();
-
     // 5. distribute dividends
     this.industries.forEach(function (ind) {
         ind.distributeDividends(that.population);
     });
-
     // 6. amortize investments
 
     // 7. rank players from the richest to the poorest (sort players)
@@ -606,6 +615,14 @@ World.prototype.getTopPlayers = function (num) {
         pl = this.population[i];
         results.push({ username: pl.username, value: pl.cash + pl.savings});
     }
+    return results;
+};
+
+World.prototype.getStatistics = function () {
+    var results = [];
+    forEachProperty(this.statistics, function (stat, statName) {
+        results.push({ name: statName, value: stat});
+    });
     return results;
 };
 

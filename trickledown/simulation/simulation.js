@@ -73,7 +73,7 @@ Simulation.prototype.updatePlayer = function (
             // update the player
             player.setVotingProfile(votingProfile.taxTheRich, votingProfile.taxThePoor, votingProfile.redistributeToCorporations);
             player.setSpendingProfile(spendingProfile.goods, spendingProfile.education, spendingProfile.stocks, spendingProfile.savings);
-            player.setInvestmentProfile();
+            player.setInvestmentProfile(investmentProfile);
             // synch it
             player.save(that.playerCol, callback);
         } else {
@@ -102,7 +102,8 @@ Simulation.prototype.getWorldState = function (
         state = {
             totalCash: world.getTotalCash(),
             moneyDistribution: world.getMoneyDistribution(),
-            topPlayers: world.getTopPlayers(8)
+            topPlayers: world.getTopPlayers(8),
+            statistics: world.getStatistics()
         };
     }
     return state;
@@ -152,6 +153,14 @@ Simulation.prototype.generateFakeUsers = function (
         return o;
     }
 
+    // we want polarized voting profiles
+    function getLeftVotingProfile() {
+        return { taxTheRich: Math.random() * 0.5 + 0.5, taxThePoor: Math.random() * 0.2, redistributeToCorporations: Math.random() * 0.1 };
+    }
+    function getRightVotingProfile() {
+        return { taxTheRich: Math.random() * 0.2, taxThePoor: Math.random() * 0.5 + 0.5, redistributeToCorporations: Math.random() * 0.5 + 0.5 };
+    }
+
     function updatePlayer(i) {
         forEachProperty(that.worlds, function (world, worldName) {
             that.updatePlayer(
@@ -159,7 +168,7 @@ Simulation.prototype.generateFakeUsers = function (
                 "pw" + i,
                 worldName,
                 { goods: Math.random(), education: Math.random(), stocks: Math.random(), savings: Math.random() },
-                { taxTheRich: Math.random(), taxThePoor: Math.random(), redistributeToCorporations: Math.random()},
+                (i % 2) === 0 ? getLeftVotingProfile() : getRightVotingProfile(),
                 getRandomInvestmentProfile(world),
                 internalCb
             );
