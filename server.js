@@ -29,7 +29,7 @@ app.configure('production', function () {
 // Routes
 app.get('/', function (req, res) {
     res.render('index', {
-        title: 'Express ' + app.settings.stuff
+        title: 'Express '
     });
 });
 
@@ -61,14 +61,15 @@ app.get('/worlds/:name', function (req, res) {
 
 
 createSimulation(function (err, simulation) {
-    simulation.start();
-    app.set('simulationEngine', simulation);
-    app.set('stuff', 'stufxxf');
-    // we should add the simulation to the app
-    // ... right here FIXME
+    if (err) {
+        console.log(err);
+    } else {
+        simulation.start();
+        app.set('simulationEngine', simulation);
 
-    // start the server
-    app.listen(3000);
-    console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+        // start the server
+        app.listen(3000);
+        console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+    }
 });
 
