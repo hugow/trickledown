@@ -90,6 +90,16 @@ Portfolio.prototype.invest = function (purchaseSystem, amount) {
     // profile... so the money should not dissappear in this case
     return amount - totalInvested;
 };
+Portfolio.prototype.getInvestmentProfile = function () {
+    var result = {};
+    forEachProperty(this.priorities, function (p, sector) {
+        result[sector] = {};
+        forEachProperty(p.reasons, function (r, reason) {
+            result[sector][reason] = r.value;
+        });
+    });
+    return result;
+};
 
 // this is a game player (i.e not a user but a player)
 function Player(username, password, worldName, o) {
@@ -175,6 +185,23 @@ Player.prototype.setInvestmentProfile = function (investmentProfile) {
             portfolio.setInvestmentWeight(sector, reason, value);
         });
     });
+};
+Player.prototype.getSpendingProfile = function () {
+    var result = {};
+    forEachProperty(this.howToSpend, function (v, n) {
+        result[n] = v;
+    });
+    return result;
+};
+Player.prototype.getVotingProfile = function () {
+    var result = {};
+    forEachProperty(this.vote, function (v, n) {
+        result[n] = v;
+    });
+    return result;
+};
+Player.prototype.getInvestmentProfile = function () {
+    return this.portfolio.getInvestmentProfile();
 };
 Player.prototype.setNPC = function (npc) {
     this.npc = npc;
@@ -671,7 +698,7 @@ World.prototype.load = function (collection, callback) {
                 return callback(null, that);
             }
             // otherwise, create a player and add it
-            var p = new Player(player.username, player.passwrd, player.world, player);
+            var p = new Player(player.username, player.password, player.world, player);
             that.population.push(p);
             that.populationIndex[p.username] = p;
         });

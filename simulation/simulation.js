@@ -73,7 +73,7 @@ Simulation.prototype.updatePlayer = function (
         if (player.password === password) {
             // update the player
             player.setVotingProfile(votingProfile.taxTheRich, votingProfile.taxThePoor, votingProfile.redistributeToCorporations);
-            player.setSpendingProfile(spendingProfile.goods, spendingProfile.education, spendingProfile.stocks, spendingProfile.savings);
+            player.setSpendingProfile(Number(spendingProfile.goods), Number(spendingProfile.education), Number(spendingProfile.stocks), Number(spendingProfile.savings));
             player.setInvestmentProfile(investmentProfile);
             player.setNPC(isNPC);
             // synch it
@@ -118,7 +118,12 @@ Simulation.prototype.getPlayerState = function (
     if (world) {
         player = world.getPlayer(username);
         if (player) {
-            state = { cash: player.cash };
+            state = {
+                cash: player.cash,
+                savings: player.savings,
+                rank: player.rank,
+                totalPlayers: world.population.length
+            };
         }
     }
     return state;
@@ -128,6 +133,21 @@ Simulation.prototype.getPlayerProfiles = function (
     username,
     password
 ) {
+    var state, world = this.worlds[worldName], player;
+    if (world) {
+        player = world.getPlayer(username);
+        if (player) {
+            if (player.password !== password) {
+                throw "Invalid credentials";
+            }
+            state = {
+                spendingProfile: player.getSpendingProfile(),
+                votingProfile: player.getVotingProfile(),
+                investmentProfile: player.getInvestmentProfile(),
+            };
+        }
+    }
+    return state;
 };
 // this is used to create a fake world, to allow the demonstration
 // of the whole thing

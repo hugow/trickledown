@@ -6,6 +6,8 @@
 var express = require('express'),
     app = module.exports = express.createServer(),
     nko = require('nko')('HDMpimMItHdc/S+8'),
+    url = require('url'),
+
     createSimulation = require('./simulation/simulation').createSimulation;
 
 // Configuration
@@ -35,10 +37,40 @@ app.get('/', function (req, res) {
 
 /// get the profiles of a specific user
 app.get('/worlds/:name/players/:username/profiles', function (req, res) {
+    var sim = app.settings.simulationEngine,
+        parsed = url.parse(req.url, true),
+        password = parsed.query.password;
+
+    res.send(JSON.stringify(sim.getPlayerProfiles(
+        req.params.name,
+        req.params.username,
+        password
+    )));
 });
 
 // set the profiles of a specific user
 app.post('/worlds/:name/players/:username/profiles', function (req, res) {
+    var sim = app.settings.simulationEngine,
+        parsed = url.parse(req.url, true),
+        password = parsed.query.password,
+        content = '';
+
+	sim.updatePlayer(
+        req.params.username,
+        password,
+        req.params.name,
+        req.body.spendingProfile,
+        req.body.votingProfile,
+        req.body.investmentProfile,
+        false,
+        function (err, callback) {
+            if (err) {
+                return res.send(err);
+            }
+            res.send('ok');
+        }
+    );
+
 });
 
 // get the state of a specific user
