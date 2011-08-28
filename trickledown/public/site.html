@@ -11,17 +11,49 @@
         $( "#tabs" ).tabs();
 
         function updateHistogram(world, histogram) {
-            $('div.' + world + ' div.gugchart').gchart({
-                type: 'line',
+            // chart 1
+            $('div.' + world + ' div.worldchart1').gchart({
+                title: '% of total money per wealth category',
+                type: 'barVert',
                 dataLabels: histogram.dataLabels,
                 legend: 'right',
                 series: [
-                    $.gchart.series('Money (%)', histogram.values, 'green')
+                    $.gchart.series('% of total money', histogram.percent, 'green', 0, 1)
+                ]
+            });
+            // chart 2
+            $('div.' + world + ' div.worldchart2').gchart({
+                title: 'Number of Players per wealth category',
+                type: 'barVert',
+                dataLabels: histogram.dataLabels,
+                legend: 'right',
+                series: [
+                    $.gchart.series('Number of People', histogram.number, 'green', 0, 100)
                 ]
             });
         }
-        function updateRanking() {
+        function updateRanking(world, values) {
+            var str = '<table>', i;
+            for (i = 0; i < values.length; i += 1) {
+                str += '<tr><td>' + values[i].username + '</td><td>' + values[i].value + '$</td></tr>';
+            }
+            str += '</table>';
+            console.log(str);
+            console.log(values);
+            $('div.' + world + ' div.playerranking').html(str);
         }
+
+        function updateOtherStats(world, values) {
+            var str = '<table>', i;
+            for (i = 0; i < values.length; i += 1) {
+                str += '<tr><td>' + values[i].name + '</td><td>' + values[i].value + '$</td></tr>';
+            }
+            str += '</table>';
+            console.log(str);
+            console.log(values);
+            $('div.' + world + ' div.otherstats').html(str);
+        }
+
 
         function setupSimulation () {
             var requests = [];
@@ -36,10 +68,18 @@
                 requests.push($.get('/worlds/opov',
                     function (data, textStatus, jqXHR) {
                         window.console.log(data);
-                        updateHistogram('opov', {
-                            dataLabels: [ '>x', '10000', 'abcd'],
-                            values: [0.2, 0.5, 0.3]
-                        });
+                        updateHistogram('opov', data.moneyDistribution);
+                        updateRanking('opov', data.topPlayers);
+                        updateOtherStats('opov', [ { name: 'test', value: 'v' }]);
+                    },
+                    'json'
+                ));
+                requests.push($.get('/worlds/odov',
+                    function (data, textStatus, jqXHR) {
+                        window.console.log(data);
+                        updateHistogram('odov', data.moneyDistribution);
+                        updateRanking('odov', data.topPlayers);
+                        updateOtherStats('odov', [ { name: 'test', value: 'v' }]);
                     },
                     'json'
                 ));
@@ -66,12 +106,60 @@
 	                    </ul>
 	                    <div id="tabs-1">
 	                        <div class='opov'>
-	                            One man one vote
-	                            <div class='gugchart'> </div>
+	                            <h2>One man one vote</h2>
+
+	                            <div class = 'sectioncomment' >
+	                                Top Players
+	                            </div>
+	                            <div class = 'playerranking'>
+
+	                            </div>
+
+	                            <div class = 'sectioncomment' >
+	                                Percent of Total Money per Wealth Category
+	                            </div>
+	                            <div class='worldchart1'> </div>
+
+
+	                            <div class = 'sectioncomment' >
+	                                People per Wealth Category
+	                            </div>
+	                            <div class='worldchart2'> </div>
+
+
+	                            <div class = 'sectioncomment' >
+	                                Other stats
+	                            </div>
+	                            <div class='otherstats'> </div>
 
 	                        </div>
 	                        <div class='odov'>
-	                            One dollar one vote
+	                            <h2>One dollar one vote</h2>
+
+	                            <div class = 'sectioncomment' >
+	                                Top Players
+	                            </div>
+	                            <div class = 'playerranking'>
+
+	                            </div>
+
+	                            <div class = 'sectioncomment' >
+	                                Percent of Total Money per Wealth Category
+	                            </div>
+	                            <div class='worldchart1'> </div>
+
+
+	                            <div class = 'sectioncomment' >
+	                                People per Wealth Category
+	                            </div>
+	                            <div class='worldchart2'> </div>
+
+
+	                            <div class = 'sectioncomment' >
+	                                Other stats
+	                            </div>
+	                            <div class='otherstats'> </div>
+
 	                        </div>
 	                    </div>
 	                    <div id="tabs-2">

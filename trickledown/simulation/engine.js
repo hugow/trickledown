@@ -486,10 +486,19 @@ World.prototype.taxation = function () {
     // distribute redistributeToCorporations to the prorata of lobbying
     this.distributeGovernmentMoneyToCorporations(toCorporations);
 };
+// ranks all the players
+World.prototype.rankPlayers = function () {
+    this.population.sort(function (p1, p2) {
+        return (p1.cash + p1.savings) - (p2.cash + p2.savings);
+    });
+    var i;
+    for (i = 0; i < this.population.length; i += 1) {
+        this.population[i].rank = i;
+    }
+};
 
 // this will perform an iteration of the simulation
 World.prototype.iterate = function () {
-    console.log('[iterate ' + this.population.length);
     var that = this;
     // useless case
     if (this.population.length === 0) {
@@ -503,12 +512,10 @@ World.prototype.iterate = function () {
     this.industries.forEach(function (ind) {
         ind.resetInvestmentData();
     });
-
     // 1. make everyone spend his money according to his priorities
     this.population.forEach(function (person) {
         person.spend(that);
     });
-
     // 2. take the money spent by players on goods and distribute it to economic
     // sectors (i.e. share the purchases between the industrial sectors)
     this.purchaseIndustryGoods();
@@ -525,7 +532,9 @@ World.prototype.iterate = function () {
     });
 
     // 6. amortize investments
-    console.log('iterate]');
+
+    // 7. rank players from the richest to the poorest (sort players)
+    this.rankPlayers();
 };
 // creates a player (FIXME: the player will have to be added to the db?
 // maybe not: this only happens when we add a new user... so...
@@ -552,6 +561,54 @@ World.prototype.getTotalCash = function () {
     total += this.cash;
     return total;
 };
+World.prototype.getMoneyDistribution = function () {
+    var ret = {},
+        buckets = [ 10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000, 1e20 ],
+        dataLabels = [ '10K', '20K', '40K', '80K', '160K', '320K', '640K', '128M', 'more' ],
+        number = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        total = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        percent = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        totalValue = 0,
+        i;
+    // put employees in an histogram
+    this.population.forEach(function (e) {
+        var w = e.income + e.cash + e.savings,
+            i;
+        totalValue += w;
+
+        for (i = 0; i < buckets.length; i += 1) {
+            if (w < buckets[i]) {
+                number[i] += 1;
+                total[i] += w;
+                break;
+            }
+        }
+    });
+    for (i = 0; i < buckets.length; i += 1) {
+        percent[i] = total[i] / totalValue;
+    }
+
+    return {
+        buckets: buckets,
+        dataLabels: dataLabels,
+        number: number,
+        total: total,
+        percent: percent
+    };
+};
+
+World.prototype.getTopPlayers = function (num) {
+    var i, results = [], pl;
+    if (num > this.population.length) {
+        num = this.population.length;
+    }
+    for (i = 0; i < num; i += 1) {
+        pl = this.population[i];
+        results.push({ username: pl.username, value: pl.cash + pl.savings});
+    }
+    return results;
+};
+
 // dump the world to mongo (needed before we shutdown, and maybe periodically)
 World.prototype.snapShotToDb = function (db, callback) {
 

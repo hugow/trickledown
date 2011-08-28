@@ -29,7 +29,6 @@ Simulation.prototype.close = function () {
 Simulation.prototype.start = function () {
     var that = this;
     this.interval = setInterval(function () {
-        console.log('.. iterate ..');
         that.iterate();
     }, 2000);
 };
@@ -68,6 +67,19 @@ Simulation.prototype.updatePlayer = function (
 ) {
     var player = this.worlds[world].getPlayer(username),
         that = this;
+    function update() {
+        // if the password matches
+        if (player.password === password) {
+            // update the player
+            player.setVotingProfile(votingProfile.taxTheRich, votingProfile.taxThePoor, votingProfile.redistributeToCorporations);
+            player.setSpendingProfile(spendingProfile.goods, spendingProfile.education, spendingProfile.stocks, spendingProfile.savings);
+            player.setInvestmentProfile();
+            // synch it
+            player.save(that.playerCol, callback);
+        } else {
+            return callback('invalid password');
+        }
+    }
     // if the player does not exist in this world
     // we must create it in all worlds
     if (!player) {
@@ -76,19 +88,10 @@ Simulation.prototype.updatePlayer = function (
                 return callback('could not create user');
             }
             player = that.worlds[world].getPlayer(username);
+            update();
         });
     } else {
-        // if the password matches
-        if (player.password === password) {
-            // update the player
-            player.setVotingProfile(votingProfile.taxTheRich, votingProfile.taxThePoor, votingProfile.redistributeToCorporations);
-            player.setSpendingProfile(spendingProfile.goods, spendingProfile.education, spendingProfile.stocks, spendingProfile.savings);
-            player.setInvestmentProfile();
-            // synch it
-            player.save(this.playerCol, callback);
-        } else {
-            return callback('invalid password');
-        }
+        update();
     }
 };
 Simulation.prototype.getWorldState = function (
@@ -96,7 +99,11 @@ Simulation.prototype.getWorldState = function (
 ) {
     var state, world = this.worlds[worldName];
     if (world) {
-        state = { totalCash: world.getTotalCash() };
+        state = {
+            totalCash: world.getTotalCash(),
+            moneyDistribution: world.getMoneyDistribution(),
+            topPlayers: world.getTopPlayers(8)
+        };
     }
     return state;
 };
@@ -151,7 +158,7 @@ Simulation.prototype.generateFakeUsers = function (
                 "NPC" + i,
                 "pw" + i,
                 worldName,
-                { goods: Math.random(), education: Math.random(), stocks: Math.random() },
+                { goods: Math.random(), education: Math.random(), stocks: Math.random(), savings: Math.random() },
                 { taxTheRich: Math.random(), taxThePoor: Math.random(), redistributeToCorporations: Math.random()},
                 getRandomInvestmentProfile(world),
                 internalCb

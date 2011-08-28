@@ -33,9 +33,24 @@ div.opov {
     background-color: gray;
 }
 
-div.gugchart {
-    width: 300px;
-    height: 300px;
+div.worldchart1 {
+    width: 380px;
+    height: 280px;
+    margin-left: 10px;
     background-color: pink;
 }
+
+div.worldchart2 {
+    width: 380px;
+    height: 280px;
+    margin-left: 10px;
+    background-color: pink;
+}
+
+div.sectioncomment {
+    width : 400px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
 
