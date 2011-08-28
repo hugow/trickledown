@@ -176,6 +176,9 @@ Player.prototype.setInvestmentProfile = function (investmentProfile) {
         });
     });
 };
+Player.prototype.setNPC = function (npc) {
+    this.npc = npc;
+};
 Player.prototype.spend = function (purchaseSystem) {
     var education, goods, stocks, howToSpend = this.howToSpend;
     // we cash our savings
@@ -508,6 +511,27 @@ World.prototype.rankPlayers = function () {
     }
 };
 
+// controls the NPC.. without a little help, the rich NPC are too dumb to
+// try to pay less taxes... This is too non representative of the real world...
+World.prototype.controlNPC = function () {
+    // the top 10 player will go for a conservative voting
+    // not wanting to share
+    var con = 10, i, p1, p2, l = this.population.length;
+    if (con > l) {
+        con = l;
+    }
+    for (i = 0; i < con; i += 1) {
+        p1 = this.population[l - (i + 1)];
+        p2 = this.population[i];
+        if (p1.npc) {
+            p1.setVotingProfile(0.5, 0.01, 0.1);
+        }
+        if (p2.npc) {
+            p2.setVotingProfile(0, 0.4, 0.9);
+        }
+    }
+};
+
 // this will perform an iteration of the simulation
 World.prototype.iterate = function () {
     var that = this;
@@ -544,6 +568,9 @@ World.prototype.iterate = function () {
 
     // 7. rank players from the richest to the poorest (sort players)
     this.rankPlayers();
+
+    // 8. put some semi intelligence in NPC players
+    this.controlNPC();
 };
 // creates a player (FIXME: the player will have to be added to the db?
 // maybe not: this only happens when we add a new user... so...

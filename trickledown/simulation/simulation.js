@@ -63,6 +63,7 @@ Simulation.prototype.updatePlayer = function (
     spendingProfile,
     votingProfile,
     investmentProfile,
+    isNPC,
     callback
 ) {
     var player = this.worlds[world].getPlayer(username),
@@ -74,6 +75,7 @@ Simulation.prototype.updatePlayer = function (
             player.setVotingProfile(votingProfile.taxTheRich, votingProfile.taxThePoor, votingProfile.redistributeToCorporations);
             player.setSpendingProfile(spendingProfile.goods, spendingProfile.education, spendingProfile.stocks, spendingProfile.savings);
             player.setInvestmentProfile(investmentProfile);
+            player.setNPC(isNPC);
             // synch it
             player.save(that.playerCol, callback);
         } else {
@@ -153,14 +155,6 @@ Simulation.prototype.generateFakeUsers = function (
         return o;
     }
 
-    // we want polarized voting profiles
-    function getLeftVotingProfile() {
-        return { taxTheRich: Math.random() * 0.5 + 0.5, taxThePoor: Math.random() * 0.2, redistributeToCorporations: Math.random() * 0.1 };
-    }
-    function getRightVotingProfile() {
-        return { taxTheRich: Math.random() * 0.2, taxThePoor: Math.random() * 0.5 + 0.5, redistributeToCorporations: Math.random() * 0.5 + 0.5 };
-    }
-
     function updatePlayer(i) {
         forEachProperty(that.worlds, function (world, worldName) {
             that.updatePlayer(
@@ -168,8 +162,9 @@ Simulation.prototype.generateFakeUsers = function (
                 "pw" + i,
                 worldName,
                 { goods: Math.random(), education: Math.random(), stocks: Math.random(), savings: Math.random() },
-                (i % 2) === 0 ? getLeftVotingProfile() : getRightVotingProfile(),
+                { taxTheRich: Math.random() * 0.5, taxThePoor: Math.random() * 0.5, redistributeToCorporations: Math.random() },
                 getRandomInvestmentProfile(world),
+                true,
                 internalCb
             );
         });

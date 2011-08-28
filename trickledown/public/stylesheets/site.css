@@ -11,6 +11,7 @@
     background-color: red;
     width: 800px;
     height: 120px;
+    border-radius: 10px 10px 0px 10px;
 }
 #mainzone {
     background-color: yellow;
@@ -18,39 +19,57 @@
     top: 120px;
     width: 800px;
 }
+div.bigtitle {
+    font-weight: bolder;
+    font-size: 70;
+    color: white;
+    text-align: center;
+    font-family:sans-serif;
+}
+div.smalltitle {
+    font-weight: bold;
+    font-size: 15;
+    color: white;
+    text-align: center;
+    font-family:sans-serif;
+}
 
 div.odov {
     position: absolute;
-    right: 0px;
-    width: 50%;
+    right: 5px;
+    width: 390px;
     background-color: red;
+    border-radius: 10px;
 }
 
 div.opov {
     position: absolute;
-    left: 0px;
-    width: 50%;
+    left: 5px;
+    width: 390px;
     background-color: gray;
+    border-radius: 10px;
 }
 
 div.worldchart1 {
-    width: 380px;
+    width: 370px;
     height: 280px;
     margin-left: 10px;
-    background-color: pink;
 }
 
 div.worldchart2 {
-    width: 380px;
+    width: 370px;
     height: 280px;
     margin-left: 10px;
-    background-color: pink;
 }
 
 div.sectioncomment {
     width : 400px;
     margin-top: 20px;
     margin-bottom: 20px;
+}
+
+div.myThing {
+    height: 1600px;
 }
 
 
