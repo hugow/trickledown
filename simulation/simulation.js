@@ -191,7 +191,6 @@ function createSimulation(callback) {
     async.waterfall([
         // open the client
         function (callback) {
-console.log('--------- 1');
             var client = new Db('trickledown', new Server("127.0.0.1", 27017, {}));
             client.open(function (err) {
                 callback(err, client);
@@ -199,7 +198,6 @@ console.log('--------- 1');
         },
         // create the collections
         function (client, callback) {
-console.log('--------- 2');
             var collectionNames = [ 'users', 'players' ];
             async.map(
                 collectionNames,
@@ -215,7 +213,6 @@ console.log('--------- 2');
         },
         // create the simulation object and load the existing worlds
         function (client, collections, callback) {
-console.log('--------- 3');
             sim = new Simulation(client, collections[0], collections[1]);
             sim.load(function (err) {
                 callback(err, sim);
@@ -225,7 +222,6 @@ console.log('--------- 3');
         if (err) {
             return callback(err);
         }
-console.log('success!!!!');
         callback(err, sim);
     });
 }

@@ -68,7 +68,13 @@ createSimulation(function (err, simulation) {
         app.set('simulationEngine', simulation);
 
         // start the server
-        app.listen(3000);
+        // (I don't know why 80 fails in my development setup, probably
+        // very obvious... but I don't have time to waste on this)
+        try {
+            app.listen(80);
+        } catch (e) {
+            app.listen(3000);
+        }
         console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
     }
 });
