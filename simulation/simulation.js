@@ -225,6 +225,7 @@ console.log('--------- 3');
         if (err) {
             return callback(err);
         }
+console.log('success!!!!');
         callback(err, sim);
     });
 }
