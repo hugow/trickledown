@@ -156,7 +156,17 @@ Player.prototype.save = function (collection, callback) {
         callback
     );
 };
+function fixNumber(n) {
+    n = Number(n);
+    if (isNaN(n)) {
+        n = 0;
+    }
+    return n;
+}
 Player.prototype.setVotingProfile = function (taxTheRich, taxThePoor, redistributeToCorporations) {
+    taxTheRich = fixNumber(taxTheRich);
+    taxThePoor = fixNumber(taxThePoor);
+    redistributeToCorporations = fixNumber(redistributeToCorporations);
     this.vote = {
         // how much the government should collect from the rich (and redistribute equally)
         taxTheRich: taxTheRich,
@@ -167,6 +177,11 @@ Player.prototype.setVotingProfile = function (taxTheRich, taxThePoor, redistribu
     };
 };
 Player.prototype.setSpendingProfile = function (goods, education, stocks, savings) {
+    goods = fixNumber(goods);
+    education = fixNumber(education);
+    stocks = fixNumber(stocks);
+    savings = fixNumber(savings);
+
     var total = goods + education + stocks + savings;
     if (total === 0) {
         total = 1;
@@ -182,7 +197,7 @@ Player.prototype.setInvestmentProfile = function (investmentProfile) {
     var portfolio = this.portfolio;
     forEachProperty(investmentProfile, function (ind, sector) {
         forEachProperty(ind, function (value, reason) {
-            portfolio.setInvestmentWeight(sector, reason, value);
+            portfolio.setInvestmentWeight(sector, reason, fixNumber(value));
         });
     });
 };
@@ -211,7 +226,6 @@ Player.prototype.spend = function (purchaseSystem) {
     // we cash our savings
     this.cash += this.savings;
     this.savings = 0;
-
     // if we do have some cash
     if (this.cash > 0) {
         // at this time, taxes should have been paid already
