@@ -44,8 +44,14 @@ Simulation.prototype.createUser = function (
 ) {
     var players = [], collection = this.playerCol;
     forEachProperty(this.worlds, function (world) {
-        players.push(world.addNewPlayer(username, password, callback));
+        if (world.population.length < 1500) {
+            players.push(world.addNewPlayer(username, password, callback));
+        }
     });
+    // prevent the world from exploding
+    if (players.length === 0) {
+        return callback('world limit reached');
+    }
     async.forEach(
         players,
         function (player, callback) {

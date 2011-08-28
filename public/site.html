@@ -44,10 +44,19 @@
         function updateOtherStats(world, values) {
             var str = '<table>', i;
             for (i = 0; i < values.length; i += 1) {
-                str += '<tr><td>' + values[i].name + '</td><td>' + values[i].value + '$</td></tr>';
+                str += '<tr><td>' + values[i].name + '</td><td>' + values[i].value + '</td></tr>';
             }
             str += '</table>';
             $('div.' + world + ' div.otherstats').html(str);
+        }
+
+        function updatePlayerStats(world, values) {
+            var str = '<table>', i;
+            for (i in values) {
+                str += '<tr><td>' + i + '</td><td>' + values[i] + '</td></tr>';
+            }
+            str += '</table>';
+            $('div.' + world + ' div.ranking').html(str);
         }
 
         function createSliderBox(containerSelector, boxdescr, whenSliderChanges) {
@@ -227,6 +236,7 @@
             // set an interval to reload the world (we know it updates constantly,
             // there is no point in being notified)
             setInterval(function () {
+                var username = $('#username').val();
                 // abort all pending ajax requests
                 requests.forEach(function (req) {
                     req.abort();
@@ -249,6 +259,23 @@
                     },
                     'json'
                 ));
+                if (username) {
+                    requests.push($.get('/worlds/odov/players/' + username,
+                        function (data, textStatus, jqXHR) {
+                            updatePlayerStats('odov', data);
+                        },
+                        'json'
+                    ));
+                    requests.push($.get('/worlds/opov/players/' + username,
+                        function (data, textStatus, jqXHR) {
+                            updatePlayerStats('opov', data);
+                        },
+                        'json'
+                    ));
+                }
+
+
+
             }, 3300);
         }
         setupSimulation();
@@ -358,12 +385,14 @@
                             <div class='opov'>
                                 <div class='worldinner'>
 	                                <h2>One man one vote</h2>
+	                                <div class='ranking'></div>
 	                                <div class='sliders'></div>
                                 </div>
 	                        </div>
                             <div class='odov'>
                                 <div class='worldinner'>
 	                                <h2>One dollar one vote</h2>
+	                                <div class='ranking'></div>
 	                                <div class='sliders'></div>
 	                            </div>
 	                        </div>
@@ -371,7 +400,10 @@
 
 	                    </div>
 	                    <div id="tabs-3">
-		                    <p>This game blabla bla</p>
+		                    <p>To play enter a username and password and
+		                    assign your priorites to the various entries.
+		                    Come back periodically to see the ranking of
+		                    your player.</p>
 	                    </div>
                     </div>
 
