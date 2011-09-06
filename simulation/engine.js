@@ -55,6 +55,7 @@ Portfolio.prototype.setInvestmentWeight = function (sector, reason, weight) {
     forEachProperty(this.priorities, function (p) {
         forEachProperty(p.reasons, function (r) {
             total += r.value;
+            r.percent = 0;
         });
     });
     if (total !== 0) {
@@ -72,18 +73,20 @@ Portfolio.prototype.invest = function (purchaseSystem, amount) {
     var that = this, totalInvested = 0;
     forEachProperty(this.priorities, function (p, sector) {
         forEachProperty(p.reasons, function (r, reason) {
-            var toInvest = amount * r.percent;
-            totalInvested += toInvest;
+            if (r.percent) {
+                var toInvest = amount * r.percent;
+                totalInvested += toInvest;
 
-            if (that.stocks[sector] === undefined) {
-                that.stocks[sector] = {};
+                if (that.stocks[sector] === undefined) {
+                    that.stocks[sector] = {};
+                }
+                if (that.stocks[sector][reason] === undefined) {
+                    that.stocks[sector][reason] = toInvest;
+                } else {
+                    that.stocks[sector][reason] += toInvest;
+                }
+                purchaseSystem.invest(sector, reason, toInvest, that.stocks[sector][reason]);
             }
-            if (that.stocks[sector][reason] === undefined) {
-                that.stocks[sector][reason] = toInvest;
-            } else {
-                that.stocks[sector][reason] += toInvest;
-            }
-            purchaseSystem.invest(sector, reason, toInvest, that.stocks[sector][reason]);
         });
     });
     // things must balance... and someone could have nothing in his
@@ -184,14 +187,20 @@ Player.prototype.setSpendingProfile = function (goods, education, stocks, saving
 
     var total = goods + education + stocks + savings;
     if (total === 0) {
-        total = 1;
+        this.howToSpend = {
+            goods: 0,
+            education: 0,
+            stocks: 0,
+            savings: 1
+        };
+    } else {
+        this.howToSpend = {
+            goods: goods / total,
+            education: education / total,
+            stocks: stocks / total,
+            savings: savings / total
+        };
     }
-    this.howToSpend  = {
-        goods: goods / total,
-        education: education / total,
-        stocks: stocks / total,
-        savings: savings / total
-    };
 };
 Player.prototype.setInvestmentProfile = function (investmentProfile) {
     var portfolio = this.portfolio;
@@ -242,6 +251,21 @@ Player.prototype.spend = function (purchaseSystem) {
         // make sure the money goes somewhere
         purchaseSystem.buyEducation(education);
         purchaseSystem.buyGoods(goods);
+
+        this.statistics = {
+            spentOnEducation: education,
+            spentOnGoods: goods,
+            spentOnStocks: stocks,
+            spentOnTaxes: 0
+        };
+
+    } else {
+        this.statistics = {
+            spentOnEducation: 0,
+            spentOnGoods: 0,
+            spentOnStocks: 0,
+            spentOnTaxes: 0
+        };
     }
 };
 
@@ -262,6 +286,7 @@ Player.prototype.paySalary = function (amount) {
 };
 
 Player.prototype.taxIncome = function (taxes) {
+    this.statistics.spentOnTaxes = taxes;
     this.cash = this.income - taxes;
     this.income = 0;
 };
@@ -544,7 +569,7 @@ World.prototype.taxation = function () {
 // ranks all the players
 World.prototype.rankPlayers = function () {
     this.population.sort(function (p1, p2) {
-        return (p2.cash + p2.savings) - (p1.cash + p1.savings);
+        return p2.statistics.spentOnGoods - p1.statistics.spentOnGoods;
     });
     var i;
     for (i = 0; i < this.population.length; i += 1) {
@@ -555,7 +580,7 @@ World.prototype.rankPlayers = function () {
 // controls the NPC.. without a little help, the rich NPC are too dumb to
 // try to pay less taxes... This is too non representative of the real world...
 World.prototype.controlNPC = function () {
-    // the top 10 player will go for a conservative voting
+/*    // the top 10 player will go for a conservative voting
     // not wanting to share
     var con = 10, i, p1, p2, l = this.population.length;
     if (con > l) {
@@ -570,7 +595,7 @@ World.prototype.controlNPC = function () {
         if (p2.npc) {
             p2.setVotingProfile(0, 0.4, 0.9);
         }
-    }
+    } */
 };
 
 // this will perform an iteration of the simulation
@@ -584,12 +609,10 @@ World.prototype.iterate = function () {
     // lost and that all of the money is in the hand of players. So this
     // (all the money in the hand pf players) is also the initial state.
     this.resetStatistics();
-
     // 0. reset invesment data in all industries
     this.industries.forEach(function (ind) {
         ind.resetInvestmentData();
     });
-
     // 1. make everyone spend his money according to his priorities
     this.population.forEach(function (person) {
         person.spend(that);
@@ -606,7 +629,6 @@ World.prototype.iterate = function () {
         ind.distributeDividends(that.population);
     });
     // 6. amortize investments
-
     // 7. rank players from the richest to the poorest (sort players)
     this.rankPlayers();
 
@@ -681,7 +703,7 @@ World.prototype.getTopPlayers = function (num) {
     }
     for (i = 0; i < num; i += 1) {
         pl = this.population[i];
-        results.push({ username: pl.username, value: pl.cash + pl.savings});
+        results.push({ username: pl.username, value: pl.statistics.spentOnGoods });
     }
     return results;
 };

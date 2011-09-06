@@ -7,8 +7,14 @@
 <script type="text/javascript" src="javascripts/gcharts/jquery.gchart.js"></script>
 <script>
     $(document).ready(function () {
+        var singleId = 0;
         $( "#tabs" ).tabs();
 
+        function getSingleId() {
+            var ret = 'id' + singleId;
+            singleId += 1;
+            return ret;
+        }
         function updateHistogram(world, histogram) {
             // chart 1
             $('div.' + world + ' div.worldchart1').gchart({
@@ -67,20 +73,24 @@
             g.append('<h2>' + boxdescr.title + '<h2>');
             // for all settings
             boxdescr.settings.forEach(function (setting) {
-                var fn = setting.fieldName, sl;
+                var fn = setting.fieldName, sid = getSingleId();
                 g.append('<p>' + setting.label + '</p>');
-                sl = g.append('<div></div>').children().last().slider({
+                g.append('<div class = "' + sid + '"></div>');
+                $('div.' + sid).slider({
                     max: 100,
-                    stop: function(event, ui) { result.changed(); }
+                    stop: function(event, ui) {
+                        console.log(' NEW VALUE FOR ' + fn + ': ' + boxdescr.title + ', ' + containerSelector + ' ' + sid + ' ' + $('div.' + sid).slider('value'));
+                        result.changed();
+                    }
                 });
-                result.sliders[fn] = sl;
+                result.sliders[fn] = sid;
             });
 
             result.setValues = function (o) {
                 var p, rs = result.sliders;
                 for (p in o) {
                     if (o.hasOwnProperty(p)) {
-                        rs[p].slider('value', o[p] * 100);
+                        $('div.' + rs[p]).slider('value', o[p] * 100);
                     }
                 }
             };
@@ -89,7 +99,7 @@
                 var o = { }, p, rs = result.sliders;
                 for (p in rs) {
                     if (rs.hasOwnProperty(p)) {
-                        o[p] = rs[p].slider('value') / 100;
+                        o[p] = $('div.' + rs[p]).slider('value') / 100;
                     }
                 }
                 return o;
@@ -126,7 +136,7 @@
                     ]
                 },
                 stockTypes = [ "wood", "metal", "drugs", "electronics", "cars", "cinema", "software" ],
-                selector = '#tabs-2 div.' + world + ' div.worldinner' + ' div.sliders';
+                selector = '#tabs-2 div.' + world + ' div.worldinner' + ' div.sliders',
                 results = {};
             $(selector).html('');
 
@@ -136,9 +146,9 @@
                     password = $('#password').val();
 
                 $.ajax({
-                    url: '/worlds/opov/players/' + username + '/profiles?password=' + escape(password),
+                    url: '/worlds/' + world + '/players/' + username + '/profiles?password=' + escape(password),
                     type: "POST",
-                    dataType: 'json',
+                    dataType: 'text',
                     data: toSend,
                     success: function (data) {
                         console.log("POST RESULT : " + data);
@@ -168,7 +178,6 @@
                         results.stocks[p].setValues(prof[p]);
                     }
                 }
-                //results.voting.setValues(profiles.votingProfile);
             };
             results.getProfiles = function (profiles) {
                 var rep = {}, p;
@@ -206,7 +215,6 @@
                     type: "GET",
                     dataType: 'json',
                     success: function (data) {
-
                         opovSliders = createUserSliders('opov');
                         opovSliders.setProfiles(data);
                     },
@@ -313,7 +321,9 @@
 	                        give better opportunities to everyone in return.</p>
 
 	                        <p>What world will be more succesful? If you play,
-	                        remember that your goal is climb to the top and
+	                        remember that your goal is climb to the top by spending
+	                        as much as possible on goods (the top player is the top
+	                        consumer) and
 	                        to stay there.</p>
 
 	                        <div class='opov'>
@@ -377,7 +387,9 @@
 	                    </div>
 	                    <div id="tabs-2">
 		                    <p>Use a username and password of your choice
-		                    then control the corresponding character.</p>
+		                    then control the corresponding character. Your
+		                    ranking is determined by the amount you spend
+		                    on goods at each simulation cycle.</p>
 		                    Username <input type='text' id = 'username' />
 		                    Password <input type='password' id = 'password' />
 		                    <input type="button" value="Play!" id = 'login' />
