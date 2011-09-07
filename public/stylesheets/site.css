@@ -52,13 +52,7 @@ div.opov {
     border-radius: 10px;
 }
 
-div.worldchart1 {
-    width: 330px;
-    height: 280px;
-    margin-left: 10px;
-}
-
-div.worldchart2 {
+div.chart {
     width: 330px;
     height: 280px;
     margin-left: 10px;

@@ -2,19 +2,23 @@
 BEFORE FIRST RELEASE
 ====================
 
-_ curves that don't leak
+_ non linearites (introduce this AFTER the world becomes better understood)
 
-_ Lobbying that goes through the same computation paths as other investments
+_ amortization of investments and education
+
+_ Five funnier industries: Food, Construction, Gun, Health, Coffin
+
+_ more clever NPCs (? increase where it pays, decrease where it pays less... choose one parameter to optimize once in a while)
+
+
+
+_ curves that don't leak (I tried the other version of the lib... not any better for me)
 
 _ world stats:
     _ total number of players
     _ total number of NPCs
-    _ simulation duration
     _ total cash
-
-_ non linearites (introduce this AFTER the world becomes better understood)
-
-_ amortization of investments and education
+    _ taxation model (min max corp)
 
 _ improved look
     _ title
@@ -23,28 +27,30 @@ _ improved look
     _ inline
     _ rounding of values (we don't care about cents!)
 
+
 _ captcha for logging in
+
+_ reddit, digg, facebook, mail linking
+
+_ linking to my blog
+
+
 
 _ description of the model (better about)
 
+_ GPL License
+
+-------------- version 2 --------------
 _ ticker, or notification system: who's climbing on top
 
 _ updates notified through twitter
 
-_ more clever NPCs (? increase where it pays, decrease where it pays less... choose one parameter to optimize once in a while)
-
-_ periodical update to the database (world snapshot)
-
-_ reddit, digg, facebook, mail linking
-
 _ lab / dictator mode (run locally, apply the taxation profile that you want)
 
-_ linking to my blog
-
-_ GPL License
-
-
 --------------- done -------------------
+X periodical update to the database (world snapshot)
+
+X Lobbying that goes through the same computation paths as other investments
 
 X minimal fee for living (like: you must spend 5000 on goods at each cycle and after that your preferences apply. If you can't spend that much, you are dead.)
 

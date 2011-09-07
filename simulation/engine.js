@@ -1,7 +1,8 @@
 // The only thing that will need to be in the database, hopefully,
-// will be:
-// users (username, hashed password, pid1, pid2)
-// playersfunction
+// will be players
+
+
+var COST_OF_LIVING = 4000;
 
 // javascript illeteracy: there should be a standard way to do this (obj.keys().forEach ???)
 function forEachProperty(object, f) {
@@ -12,6 +13,15 @@ function forEachProperty(object, f) {
         }
     }
 }
+// fixes a number that arrives from the external world
+function fixNumber(n) {
+    n = Number(n);
+    if (isNaN(n)) {
+        n = 0;
+    }
+    return n;
+}
+
 //      -
 // + the simulation will run in memory
 // + the db will be updated once in a while (we only use it as a big object
@@ -86,6 +96,7 @@ Portfolio.prototype.invest = function (purchaseSystem, amount) {
                     that.stocks[sector][reason] += toInvest;
                 }
                 purchaseSystem.invest(sector, reason, toInvest, that.stocks[sector][reason]);
+                that.investmentStatistic(sector, toInvest);
             }
         });
     });
@@ -102,6 +113,29 @@ Portfolio.prototype.getInvestmentProfile = function () {
         });
     });
     return result;
+};
+
+Portfolio.prototype.resetStatistics = function () {
+    var that = this;
+    this.statistics = { spent: {}, received: {}};
+    forEachProperty(this.priorities, function (p, sector) {
+        that.statistics.spent[sector] = 0;
+        that.statistics.received[sector] = 0;
+    });
+};
+
+Portfolio.prototype.investmentStatistic = function (sector, amount) {
+    if (this.statistics.spent[sector] === undefined) {
+        this.statistics.spent[sector] = 0;
+    }
+    this.statistics.spent[sector] += amount;
+};
+
+Portfolio.prototype.dividendStatistic = function (sector, amount) {
+    if (this.statistics.received[sector] === undefined) {
+        this.statistics.received[sector] = 0;
+    }
+    this.statistics.received[sector] += amount;
 };
 
 // this is a game player (i.e not a user but a player)
@@ -150,6 +184,7 @@ function Player(username, password, worldName, o) {
     if (o._id) {
         this.id = o._id;
     }
+    this.resetStatistics();
 }
 Player.prototype.save = function (collection, callback) {
     collection.update(
@@ -159,13 +194,21 @@ Player.prototype.save = function (collection, callback) {
         callback
     );
 };
-function fixNumber(n) {
-    n = Number(n);
-    if (isNaN(n)) {
-        n = 0;
-    }
-    return n;
-}
+Player.prototype.resetStatistics = function () {
+    // clear the stats
+    this.statistics = {
+        spentOnEducation: 0,
+        spentOnGoods: 0,
+        spentOnStocks: 0,
+        spentOnTaxes: 0,
+        spentOnSavings: 0,
+        receivedInSalary: 0,
+        receivedInDividends: 0,
+        receivedFromGovernment: 0,
+        receivedFromSavings: 0
+    };
+    this.portfolio.resetStatistics();
+};
 Player.prototype.setVotingProfile = function (taxTheRich, taxThePoor, redistributeToCorporations) {
     taxTheRich = fixNumber(taxTheRich);
     taxThePoor = fixNumber(taxThePoor);
@@ -231,42 +274,55 @@ Player.prototype.setNPC = function (npc) {
     this.npc = npc;
 };
 Player.prototype.spend = function (purchaseSystem) {
-    var education, goods, stocks, howToSpend = this.howToSpend;
+    var education, goods, basicgoods, stocks, howToSpend = this.howToSpend,
+        initialSavings = this.savings;
+
     // we cash our savings
     this.cash += this.savings;
     this.savings = 0;
-    // if we do have some cash
-    if (this.cash > 0) {
-        // at this time, taxes should have been paid already
-        education = this.cash * howToSpend.education;
-        goods = this.cash * howToSpend.goods;
-        stocks = this.cash * howToSpend.stocks;
-        // update what we have
-        this.savings = this.cash - (education + goods + stocks);
-        this.cash = 0;
-        this.education += education;
-        // if for some reason we could not invest (invalid investment percentages,
-        // we move the money to the savings... for now)
-        this.savings += this.portfolio.invest(purchaseSystem, stocks);
-        // make sure the money goes somewhere
-        purchaseSystem.buyEducation(education);
-        purchaseSystem.buyGoods(goods);
-
-        this.statistics = {
-            spentOnEducation: education,
-            spentOnGoods: goods,
-            spentOnStocks: stocks,
-            spentOnTaxes: 0
-        };
-
-    } else {
-        this.statistics = {
-            spentOnEducation: 0,
-            spentOnGoods: 0,
-            spentOnStocks: 0,
-            spentOnTaxes: 0
-        };
+    // there is a minimal amount that must be spent to 'live'
+    // (below that you don't eat enough... you are... dead)
+    /*goods = 5000;
+    if (goods > this.cash) {
+        goods = this.cash;
     }
+    this.cash -= goods;*/
+    // there is a minimal amount we must spend on goods to live
+    basicgoods = COST_OF_LIVING;
+    if (basicgoods > this.cash) {
+        basicgoods = this.cash;
+    }
+    this.cash -= basicgoods;
+    purchaseSystem.buyGoods(basicgoods);
+    // this is our discretionary spending
+    // ----------------------------------
+    // at this time, taxes should have been paid already
+    education = this.cash * howToSpend.education;
+    goods = this.cash * howToSpend.goods;
+    stocks = this.cash * howToSpend.stocks;
+    // update what we have
+    this.savings = this.cash - (education + goods + stocks);
+    this.cash = 0;
+    this.education += education;
+    // if for some reason we could not invest (invalid investment percentages,
+    // we move the money to the savings... for now)
+    this.savings += this.portfolio.invest(purchaseSystem, stocks);
+
+    // make sure the money goes somewhere
+    purchaseSystem.buyEducation(education);
+    purchaseSystem.buyGoods(goods);
+
+    // keep stats
+    if (this.savings > initialSavings) {
+        this.statistics.spentOnSavings = this.savings - initialSavings;
+        this.statistics.receivedFromSavings = 0;
+    } else {
+        this.statistics.spentOnSavings = 0;
+        this.statistics.receivedFromSavings = initialSavings - this.savings;
+    }
+    this.statistics.spentOnEducation = education;
+    this.statistics.spentOnGoods = goods + basicgoods;
+    this.statistics.spentOnStocks = stocks;
 };
 
 Player.prototype.getEducation = function () {
@@ -274,15 +330,22 @@ Player.prototype.getEducation = function () {
 };
 
 Player.prototype.getDividendSharingWeight = function (sector) {
-    var portfolio = this.portfolio;
+    var portfolio = this.portfolio, ret = 0;
     // note: we don't count the lobbying
-    return portfolio.stocks[sector] !== undefined ?
-        portfolio.stocks[sector].technology + portfolio.stocks[sector].size :
-        0;
+    if (portfolio.stocks[sector]) {
+        if (portfolio.stocks[sector].technology) {
+            ret += portfolio.stocks[sector].technology;
+        }
+        if (portfolio.stocks[sector].size) {
+            ret += portfolio.stocks[sector].size;
+        }
+    }
+    return ret;
 };
 
 Player.prototype.paySalary = function (amount) {
     this.income = amount;
+    this.statistics.receivedInSalary = amount;
 };
 
 Player.prototype.taxIncome = function (taxes) {
@@ -293,10 +356,13 @@ Player.prototype.taxIncome = function (taxes) {
 
 Player.prototype.payGovernmentServices = function (taxes) {
     this.cash += taxes;
+    this.statistics.receivedFromGovernment += taxes;
 };
 
-Player.prototype.payDividends = function (amount) {
+Player.prototype.payDividends = function (sector, amount) {
     this.cash += amount;
+    this.statistics.receivedInDividends += amount;
+    this.portfolio.dividendStatistic(sector, amount);
 };
 
 // this is an industry
@@ -304,6 +370,15 @@ function Industry(sector) {
     this.sector = sector;
     this.cash = 0;
 }
+Industry.prototype.resetStatistics = function () {
+    this.statistics = {
+        spentOnSalaries: 0,
+        spentOnLobbying: 0,
+        spentOnDividends: 0,
+        receivedInPurchases: 0,
+        receivedFromGovernment: 0
+    };
+};
 Industry.prototype.resetInvestmentData = function () {
     var that = this;
     this.investments = {};
@@ -326,6 +401,8 @@ Industry.prototype.updateMarketWeight = function () {
     investments.marketWeight =
         investments.size +
         investments.technology * 0.5;
+    // update the various stats
+    this.statistics.marketWeight = investments.marketWeight;
 };
 
 Industry.prototype.getMarketWeight = function () {
@@ -338,25 +415,33 @@ Industry.prototype.getLobbyingWeight = function () {
 
 Industry.prototype.purchaseGoods = function (amount) {
     this.cash += amount;
+    this.statistics.receivedInPurchases += amount;
 };
 
 Industry.prototype.collectSalaries = function () {
     var investments = this.investments,
         tot = investments.size + investments.technology + investments.lobbying,
-        payroll = investments.size + investments.lobbying,
-        salaries;
+        salaries = 0,
+        lobbying = 0,
+        payroll;
     if (tot > 0) {
-        salaries = this.cash * payroll / tot;
+        salaries = investments.size * this.cash / tot;
+        lobbying = investments.lobbying * this.cash / tot;
     } else {
         // no investments... kinda weird.. return everything as salaries
         salaries = this.cash;
     }
-    this.cash -= salaries;
-    return salaries;
+    payroll = salaries + lobbying;
+    this.cash -= payroll;
+    this.statistics.spentOnSalaries += salaries;
+    this.statistics.spentOnLobbying += lobbying;
+
+    return payroll;
 };
 
 Industry.prototype.payGovernmentContract = function (amount) {
     this.cash += amount;
+    this.statistics.receivedFromGovernment += amount;
 };
 
 Industry.prototype.distributeDividends = function (population) {
@@ -376,9 +461,10 @@ Industry.prototype.distributeDividends = function (population) {
         population.forEach(function (player) {
             var pay = player.getDividendSharingWeight(sector) * dividendRatio;
             // pay dividends
-            player.payDividends(pay);
+            player.payDividends(that.sector, pay);
             that.cash -= pay;
         });
+        this.statistics.spentOnDividends += dividends;
     }
 };
 
@@ -420,6 +506,12 @@ World.prototype.resetStatistics = function () {
         taxThePoor: 0,
         redistributeToCorporations: 0
     };
+    this.population.forEach(function (p) {
+        p.resetStatistics();
+    });
+    this.industries.forEach(function (ind) {
+        ind.resetStatistics();
+    });
 };
 // the 'purchase' interface (begin)
 // buys some education
@@ -716,9 +808,23 @@ World.prototype.getStatistics = function () {
     return results;
 };
 
-// dump the world to mongo (needed before we shutdown, and maybe periodically)
-World.prototype.snapShotToDb = function (db, callback) {
+World.prototype.getIndustryStatistics = function () {
+    var stats = {};
+    this.industries.forEach(function (ind) {
+        var st = {};
+        stats[ind.sector] = st;
+        forEachProperty(ind.statistics, function (stat, statName) {
+            st[statName] = stat;
+        });
+    });
+    return stats;
+};
 
+// dump the world to mongo (needed before we shutdown, and maybe periodically)
+World.prototype.save = function (collection, callback) {
+    require('async').forEach(this.population, function (p, callback) {
+        p.save(collection, callback);
+    }, callback);
 };
 // note: this will only be called at the startup when the world is
 // loading (no simulation while loading)

@@ -33,6 +33,7 @@ Simulation.prototype.start = function () {
     }, 2000);
 };
 Simulation.prototype.iterate = function () {
+    this.periodicalSave();
     forEachProperty(this.worlds, function (world) {
         world.iterate();
     });
@@ -111,7 +112,8 @@ Simulation.prototype.getWorldState = function (
             totalCash: world.getTotalCash(),
             moneyDistribution: world.getMoneyDistribution(),
             topPlayers: world.getTopPlayers(8),
-            statistics: world.getStatistics()
+            statistics: world.getStatistics(),
+            industryStatistics: world.getIndustryStatistics()
         };
     }
     return state;
@@ -128,7 +130,9 @@ Simulation.prototype.getPlayerState = function (
                 cash: player.cash,
                 savings: player.savings,
                 rank: player.rank,
-                totalPlayers: world.population.length
+                totalPlayers: world.population.length,
+                statistics: player.statistics,
+                portfolioStatistics: player.portfolio.statistics
             };
         }
     }
@@ -199,6 +203,24 @@ Simulation.prototype.generateFakeUsers = function (
     for (i = 0; i < number; i += 1) {
         updatePlayer(i);
     }
+};
+
+Simulation.prototype.periodicalSave = function () {
+    var that = this;
+    if (this.nextSave === undefined) {
+        this.nextSave = 20;
+    } else if (this.nextSave === 0) {
+        this.nextSave = 20;
+        forEachProperty(this.worlds, function (world) {
+            console.log('Saving world ' + world.worldName);
+            world.save(that.playerCol ,function (err) {
+                if (err) {
+                    console.log('Error while saving world ' + world.worldName + ': ' + err);
+                }
+            });
+        });
+    }
+    this.nextSave -= 1;
 };
 
 Simulation.prototype.load = function (callback) {

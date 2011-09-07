@@ -36,6 +36,9 @@ $(document).ready(function () {
                 xaxis: {
                     renderer: $.jqplot.CategoryAxisRenderer,
                     ticks: histogram.dataLabels
+                },
+                yaxis: {
+                    min: 0
                 }
             },
             highlighter: { show: false }
@@ -52,22 +55,25 @@ $(document).ready(function () {
                 xaxis: {
                     renderer: $.jqplot.CategoryAxisRenderer,
                     ticks: histogram.dataLabels
+                },
+                yaxis: {
+                    min: 0
                 }
             },
             highlighter: { show: false }
         });
 
         // industry stuff
-        var ind, i, toPlot = [], indNames = [], indPurchase = [], indGov = [], indSalaries = [], indDividends = [];
+        var ind, i, toPlot = [], indNames = [], indPurchase = [], indGov = [], indSalaries = [], indDividends = [], indLobbying = [];
         for (ind in industryStatistics) {
             if (industryStatistics.hasOwnProperty(ind)) {
                 i = industryStatistics[ind];
-console.log(i);
                 toPlot.push([ind, i.marketWeight]);
                 indPurchase.push(i.receivedInPurchases);
                 indGov.push(i.receivedFromGovernment);
                 indSalaries.push(i.spentOnSalaries);
                 indDividends.push(i.spentOnDividends);
+                indLobbying.push(i.spentOnLobbying);
                 indNames.push(ind);
             }
         }
@@ -103,6 +109,9 @@ console.log(i);
                 xaxis: {
                     renderer: $.jqplot.CategoryAxisRenderer,
                     ticks: indNames
+                },
+                yaxis: {
+                    min: 0
                 }
             },
 
@@ -114,7 +123,7 @@ console.log(i);
         if (worldGraphics[world].wg5 !== undefined) {
             worldGraphics[world].wg5.destroy();
         }
-        worldGraphics[world].wg5 = $.jqplot(wg5Id, [indSalaries, indDividends], {
+        worldGraphics[world].wg5 = $.jqplot(wg5Id, [indSalaries, indDividends, indLobbying], {
             stackSeries: true,
             seriesDefaults:{
                 renderer:$.jqplot.BarRenderer,
@@ -126,6 +135,9 @@ console.log(i);
 			    },
 			    {
 				    label: 'Dividends'
+			    },
+			    {
+			        label: 'Lobbying'
 			    }
 			],
 
@@ -133,52 +145,15 @@ console.log(i);
                 xaxis: {
                     renderer: $.jqplot.CategoryAxisRenderer,
                     ticks: indNames
+                },
+                yaxis: {
+                    min: 0
                 }
             },
 
             highlighter: { show: false },
             legend: {show: true}
         });
-
-
-/*$.jqplot('chart1', [line1, line2], {
-			stackSeries: true,
-			legend: {
-                renderer: $.jqplot.EnhancedLegendRenderer,
-				show: true,
-				location: 'ne'
-			},
-			title: 'Data per month stack by user',
-			seriesDefaults: {
-				renderer: $.jqplot.BarRenderer,
-				rendererOptions: {
-                    // barPadding: 6,
-          // barMargin: 15,
-          barWidth: 20
-				},
-				pointLabels: {
-					hideZeros: true
-				}
-        // shadowAngle: 135
-			},
-			series: [{
-				label: 'User1'
-			},
-			{
-				label: 'User2'
-			}],
-			axes: {
-				xaxis: {
-					renderer: $.jqplot.CategoryAxisRenderer,
-          ticks: tickers
-				},
-				yaxis: {
-					min: 0
-				}
-			}
-		});
-  */
-
     }
 
     function updateRanking(world, values) {
@@ -235,6 +210,9 @@ console.log(i);
                 xaxis: {
                     renderer: $.jqplot.CategoryAxisRenderer,
                     ticks: roiLabels
+                },
+                yaxis: {
+                    min: 0
                 }
             },
             highlighter: { show: false }
