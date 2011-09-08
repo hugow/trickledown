@@ -186,6 +186,64 @@ function Player(username, password, worldName, o) {
     }
     this.resetStatistics();
 }
+Player.prototype.npcControl = function () {
+    // we will use the satistics to somehow control the NPC and make it do things
+    // semi clever
+    if (this.npc) {
+        // adjust spending on goods
+        if (this.cash < 10000) {
+            this.howToSpend.goods = 0;
+        } else if ((this.statistics.spentOnGoods / this.cash) < 0.1) {
+            this.howToSpend.goods *= 0.9;
+        } else {
+            this.howToSpend.goods += 0.001;
+            this.howToSpend.goods *= 1.1;
+        }
+        // adjust education
+        if (this.statistics.spentOnEducation > this.statistics.receivedInSalary) {
+            this.howToSpend.education *= 0.9;
+        } else {
+            this.howToSpend.education += 0.001;
+            this.howToSpend.education *= 1.1;
+        }
+        // adjust investments
+        if (this.statistics.spentOnStocks > this.statistics.receivedInDividends) {
+            this.howToSpend.stocks *= 0.9;
+        } else {
+            this.howToSpend.stocks += 0.001;
+            this.howToSpend.stocks *= 1.1;
+        }
+        // savings are mostly useless
+        this.howToSpend.savings = 0;
+        // adjust our voting profile to make us richer (hopefully)
+        if (this.cash > 100000) {
+            this.vote.taxTheRich *= 0.9;
+            this.vote.taxThePoor += 0.001;
+            this.vote.taxThePoor *= 1.1;
+            this.vote.redistributeToCorporations += 0.001;
+            this.vote.redistributeToCorporations *= 1.1;
+            // if we get more in salaries:
+        } else {
+            this.vote.taxTheRich += 0.001;
+            this.vote.taxTheRich *= 1.1;
+            this.vote.taxThePoor *= 0.9;
+            this.vote.redistributeToCorporations *= 0.9;
+        }
+        function limit(v) {
+            if (v > 1) {
+                v = 1;
+            }
+            if (v < 0) {
+                v = 0;
+            }
+            return v;
+        }
+        this.vote.redistributeToCorporations = limit(this.vote.redistributeToCorporations);
+        this.vote.taxTheRich = limit(this.vote.taxTheRich);
+        this.vote.taxThePoor = limit(this.vote.taxThePoor);
+        // don't touch the portfolio stuff
+    }
+};
 Player.prototype.save = function (collection, callback) {
     collection.update(
         {world: this.world, username: this.username},
@@ -672,22 +730,12 @@ World.prototype.rankPlayers = function () {
 // controls the NPC.. without a little help, the rich NPC are too dumb to
 // try to pay less taxes... This is too non representative of the real world...
 World.prototype.controlNPC = function () {
-/*    // the top 10 player will go for a conservative voting
-    // not wanting to share
-    var con = 10, i, p1, p2, l = this.population.length;
-    if (con > l) {
-        con = l;
+    var toControl, i;
+    // randomly update some of the npcs
+    for (i = 0; i < 5; i += 1) {
+        toControl = Math.floor(Math.random() * this.population.length);
+        this.population[toControl].npcControl();
     }
-    for (i = 0; i < con; i += 1) {
-        p1 = this.population[l - (i + 1)];
-        p2 = this.population[i];
-        if (p1.npc) {
-            p1.setVotingProfile(0.5, 0.01, 0.1);
-        }
-        if (p2.npc) {
-            p2.setVotingProfile(0, 0.4, 0.9);
-        }
-    } */
 };
 
 // this will perform an iteration of the simulation

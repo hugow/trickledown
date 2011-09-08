@@ -8,10 +8,6 @@ _ amortization of investments and education
 
 _ Five funnier industries: Food, Construction, Gun, Health, Coffin
 
-_ more clever NPCs (? increase where it pays, decrease where it pays less... choose one parameter to optimize once in a while)
-
-
-
 _ curves that don't leak (I tried the other version of the lib... not any better for me)
 
 _ world stats:
@@ -72,4 +68,6 @@ X world charts:
     X (pie) the market shares of each industrial sector
     X (pie) for each industrial sector, its revenues (invest, gov, purchase)
     X (pie) spending per capita: goods, investments, savings, education, taxes
+
+X more clever NPCs (? increase where it pays, decrease where it pays less... choose one parameter to optimize once in a while)
 
