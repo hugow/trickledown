@@ -20,7 +20,7 @@ $(document).ready(function () {
         var wg1Id = world + '_' + 'worldchart1',
             wg2Id = world + '_' + 'worldchart2',
             wg3Id = world + '_' + 'marketshares',
-            wg4Id = world + '_' + 'industryRevenue';
+            wg4Id = world + '_' + 'industryRevenue',
             wg5Id = world + '_' + 'industrySpending';
 
         // seems to be leaking heavily if we don't destroy the thing

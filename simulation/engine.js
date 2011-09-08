@@ -190,31 +190,39 @@ Player.prototype.npcControl = function () {
     // we will use the satistics to somehow control the NPC and make it do things
     // semi clever
     if (this.npc) {
+        var howToSpend = this.howToSpend,
+            goods = howToSpend.goods,
+            education = howToSpend.education,
+            stocks = howToSpend.stocks,
+            savings = howToSpend.savings;
+
         // adjust spending on goods
         if (this.cash < 10000) {
-            this.howToSpend.goods = 0;
+            goods = 0;
         } else if ((this.statistics.spentOnGoods / this.cash) < 0.1) {
-            this.howToSpend.goods *= 0.9;
+            goods *= 0.9;
         } else {
-            this.howToSpend.goods += 0.001;
-            this.howToSpend.goods *= 1.1;
+            goods += 0.001;
+            goods *= 1.1;
         }
         // adjust education
         if (this.statistics.spentOnEducation > this.statistics.receivedInSalary) {
-            this.howToSpend.education *= 0.9;
+            education *= 0.9;
         } else {
-            this.howToSpend.education += 0.001;
-            this.howToSpend.education *= 1.1;
+            education += 0.001;
+            education *= 1.1;
         }
         // adjust investments
         if (this.statistics.spentOnStocks > this.statistics.receivedInDividends) {
-            this.howToSpend.stocks *= 0.9;
+            stocks *= 0.9;
         } else {
-            this.howToSpend.stocks += 0.001;
-            this.howToSpend.stocks *= 1.1;
+            stocks += 0.001;
+            stocks *= 1.1;
         }
         // savings are mostly useless
-        this.howToSpend.savings = 0;
+        savings = 0;
+        this.setSpendingProfile(goods, education, stocks, savings);
+
         // adjust our voting profile to make us richer (hopefully)
         if (this.cash > 100000) {
             this.vote.taxTheRich *= 0.9;
