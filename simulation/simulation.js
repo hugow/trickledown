@@ -30,7 +30,7 @@ Simulation.prototype.start = function () {
     var that = this;
     this.interval = setInterval(function () {
         that.iterate();
-    }, 2000);
+    }, 2); //2000);
 };
 Simulation.prototype.iterate = function () {
     this.periodicalSave();
@@ -186,14 +186,22 @@ Simulation.prototype.generateFakeUsers = function (
     }
 
     function updatePlayer(i) {
+        var sp = { goods: Math.random(), education: Math.random(), stocks: Math.random(), savings: Math.random() },
+            vp = { taxTheRich: Math.random() * 0.5, taxThePoor: Math.random() * 0.5, redistributeToCorporations: Math.random() },
+            ip;
+
+
         forEachProperty(that.worlds, function (world, worldName) {
+            if (ip === undefined) {
+                ip = getRandomInvestmentProfile(world);
+            }
             that.updatePlayer(
                 "NPC" + i,
                 "pw" + i,
                 worldName,
-                { goods: Math.random(), education: Math.random(), stocks: Math.random(), savings: Math.random() },
-                { taxTheRich: Math.random() * 0.5, taxThePoor: Math.random() * 0.5, redistributeToCorporations: Math.random() },
-                getRandomInvestmentProfile(world),
+                sp,
+                vp,
+                ip,
                 true,
                 internalCb
             );
@@ -213,7 +221,7 @@ Simulation.prototype.periodicalSave = function () {
         this.nextSave = 20;
         forEachProperty(this.worlds, function (world) {
             console.log('Saving world ' + world.worldName);
-            world.save(that.playerCol ,function (err) {
+            world.save(that.playerCol, function (err) {
                 if (err) {
                     console.log('Error while saving world ' + world.worldName + ': ' + err);
                 }

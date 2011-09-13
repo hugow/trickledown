@@ -137,7 +137,21 @@ Portfolio.prototype.dividendStatistic = function (sector, amount) {
     }
     this.statistics.received[sector] += amount;
 };
-
+// make the portfolio leak some of its value over time
+Portfolio.prototype.amortize = function () {
+    var factors = {
+        size: 0.995,
+        technology: 0.99,
+        lobbying: 0.9
+    };
+    forEachProperty(this.stocks, function (stock) {
+        forEachProperty(stock, function (value, reason) {
+            if (factors[reason]) {
+                stock[reason] *= factors[reason];
+            }
+        });
+    });
+};
 // this is a game player (i.e not a user but a player)
 function Player(username, password, worldName, o) {
     var that = this;
@@ -189,6 +203,15 @@ function Player(username, password, worldName, o) {
 Player.prototype.npcControl = function () {
     // we will use the satistics to somehow control the NPC and make it do things
     // semi clever
+    function limit(v, m) {
+        if (v > m) {
+            v = m;
+        }
+        if (v < 0) {
+            v = 0;
+        }
+        return v;
+    }
     if (this.npc) {
         var howToSpend = this.howToSpend,
             goods = howToSpend.goods,
@@ -199,7 +222,7 @@ Player.prototype.npcControl = function () {
         // adjust spending on goods
         if (this.cash < 10000) {
             goods = 0;
-        } else if ((this.statistics.spentOnGoods / this.cash) < 0.1) {
+        } else if ((this.statistics.spentOnGoods / this.cash) > 0.25) {
             goods *= 0.9;
         } else {
             goods += 0.001;
@@ -237,18 +260,9 @@ Player.prototype.npcControl = function () {
             this.vote.taxThePoor *= 0.9;
             this.vote.redistributeToCorporations *= 0.9;
         }
-        function limit(v) {
-            if (v > 1) {
-                v = 1;
-            }
-            if (v < 0) {
-                v = 0;
-            }
-            return v;
-        }
-        this.vote.redistributeToCorporations = limit(this.vote.redistributeToCorporations);
-        this.vote.taxTheRich = limit(this.vote.taxTheRich);
-        this.vote.taxThePoor = limit(this.vote.taxThePoor);
+        this.vote.redistributeToCorporations = limit(this.vote.redistributeToCorporations, 1);
+        this.vote.taxTheRich = limit(this.vote.taxTheRich, 0.4);
+        this.vote.taxThePoor = limit(this.vote.taxThePoor, 0.4);
         // don't touch the portfolio stuff
     }
 };
@@ -346,13 +360,6 @@ Player.prototype.spend = function (purchaseSystem) {
     // we cash our savings
     this.cash += this.savings;
     this.savings = 0;
-    // there is a minimal amount that must be spent to 'live'
-    // (below that you don't eat enough... you are... dead)
-    /*goods = 5000;
-    if (goods > this.cash) {
-        goods = this.cash;
-    }
-    this.cash -= goods;*/
     // there is a minimal amount we must spend on goods to live
     basicgoods = COST_OF_LIVING;
     if (basicgoods > this.cash) {
@@ -431,6 +438,13 @@ Player.prototype.payDividends = function (sector, amount) {
     this.portfolio.dividendStatistic(sector, amount);
 };
 
+Player.prototype.amortize = function () {
+    // make the education age
+    this.education = this.education * 0.999;
+    // make the portfolio age
+    this.portfolio.amortize();
+};
+
 // this is an industry
 function Industry(sector) {
     this.sector = sector;
@@ -466,7 +480,7 @@ Industry.prototype.updateMarketWeight = function () {
     var investments = this.investments;
     investments.marketWeight =
         investments.size +
-        investments.technology * 0.5;
+        investments.technology * 0.1;
     // update the various stats
     this.statistics.marketWeight = investments.marketWeight;
 };
@@ -546,13 +560,11 @@ function World(worldName, oneDollarOneVote) {
     this.oneDollarOneVote = oneDollarOneVote;
     // industries
     this.industries = [
-        new Industry('wood'),
-        new Industry('metal'),
-        new Industry('drugs'),
-        new Industry('electronics'),
-        new Industry('cars'),
-        new Industry('cinema'),
-        new Industry('software')
+        new Industry('food'),
+        new Industry('houses'),
+        new Industry('guns'),
+        new Industry('health'),
+        new Industry('coffins')
     ];
     // (quickly find by name)
     this.industryIndex = {};
@@ -673,7 +685,7 @@ World.prototype.taxation = function () {
         voteWeight = 0,
         toCorporations = 0,
         getVoteWeight = this.oneDollarOneVote ?
-            function (person) { return person.income + person.cash + person.savings + 1; } :
+            function (person) { return (person.income + person.cash + person.savings) > 100000 ? 1 : 0; } :
             function (person) { return 1; };
 
     // compute the taxation profile
@@ -735,6 +747,14 @@ World.prototype.rankPlayers = function () {
     }
 };
 
+// ranks all the players
+World.prototype.amortize = function () {
+    this.population.forEach(function (p) {
+        p.amortize();
+    });
+};
+
+
 // controls the NPC.. without a little help, the rich NPC are too dumb to
 // try to pay less taxes... This is too non representative of the real world...
 World.prototype.controlNPC = function () {
@@ -777,6 +797,8 @@ World.prototype.iterate = function () {
         ind.distributeDividends(that.population);
     });
     // 6. amortize investments
+    this.amortize();
+
     // 7. rank players from the richest to the poorest (sort players)
     this.rankPlayers();
 

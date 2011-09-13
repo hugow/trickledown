@@ -1,7 +1,7 @@
 $(document).ready(function () {
     var singleId = 0,
         // FIXME: should not be known here (should come from the server)
-        stockTypes = [ "wood", "metal", "drugs", "electronics", "cars", "cinema", "software" ],
+        stockTypes = [ 'food', 'houses', 'guns', 'health', 'coffins' ],
         worldGraphics = { odov: {}, opov: {}},
         playerGraphics = { odov: {}, opov: {}};
 
@@ -25,6 +25,7 @@ $(document).ready(function () {
 
         // seems to be leaking heavily if we don't destroy the thing
         if (worldGraphics[world].wg1 !== undefined) {
+            $(wg1Id).empty();
             worldGraphics[world].wg1.destroy();
         }
         worldGraphics[world].wg1 = $.jqplot(wg1Id, [histogram.percent], {
@@ -44,7 +45,8 @@ $(document).ready(function () {
             highlighter: { show: false }
         });
         if (worldGraphics[world].wg2 !== undefined) {
-             worldGraphics[world].wg2.destroy();
+            $(wg2Id).empty();
+            worldGraphics[world].wg2.destroy();
         }
         worldGraphics[world].wg2 = $.jqplot(wg2Id, [histogram.number], {
             seriesDefaults:{
@@ -79,6 +81,7 @@ $(document).ready(function () {
         }
         // market shares of the various industries
         if (worldGraphics[world].wg3 !== undefined) {
+            $(wg3Id).empty();
             worldGraphics[world].wg3.destroy();
         }
         worldGraphics[world].wg3 = $.jqplot(wg3Id, [toPlot], {
@@ -88,6 +91,7 @@ $(document).ready(function () {
 
         // revenue of the different industries
         if (worldGraphics[world].wg4 !== undefined) {
+            $(wg4Id).empty();
             worldGraphics[world].wg4.destroy();
         }
         worldGraphics[world].wg4 = $.jqplot(wg4Id, [indPurchase, indGov], {
@@ -121,6 +125,7 @@ $(document).ready(function () {
 
         // revenue of the different industries
         if (worldGraphics[world].wg5 !== undefined) {
+            $(wg5Id).empty();
             worldGraphics[world].wg5.destroy();
         }
         worldGraphics[world].wg5 = $.jqplot(wg5Id, [indSalaries, indDividends, indLobbying], {

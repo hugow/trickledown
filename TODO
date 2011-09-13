@@ -4,10 +4,6 @@ BEFORE FIRST RELEASE
 
 _ non linearites (introduce this AFTER the world becomes better understood)
 
-_ amortization of investments and education
-
-_ Five funnier industries: Food, Construction, Gun, Health, Coffin
-
 _ curves that don't leak (I tried the other version of the lib... not any better for me)
 
 _ world stats:
@@ -44,6 +40,10 @@ _ updates notified through twitter
 _ lab / dictator mode (run locally, apply the taxation profile that you want)
 
 --------------- done -------------------
+X amortization of investments and education
+
+X Five funnier industries: Food, Houses, Guns, Health, Coffins
+
 X periodical update to the database (world snapshot)
 
 X Lobbying that goes through the same computation paths as other investments
