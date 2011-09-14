@@ -22,6 +22,8 @@ $(document).ready(function () {
             wg3Id = world + '_' + 'marketshares',
             wg4Id = world + '_' + 'industryRevenue',
             wg5Id = world + '_' + 'industrySpending';
+            wg6Id = world + '_' + 'sbreakdown';
+            wg7Id = world + '_' + 'rbreakdown';
 
         // seems to be leaking heavily if we don't destroy the thing
         if (worldGraphics[world].wg1 !== undefined) {
@@ -66,12 +68,22 @@ $(document).ready(function () {
         });
 
         // industry stuff
-        var ind, i, toPlot = [], indNames = [], indPurchase = [], indGov = [], indSalaries = [], indDividends = [], indLobbying = [];
+        var ind, i,
+            toPlot = [],
+            indNames = [],
+            indPurchase = [],
+            indInvest = [],
+            indGov = [],
+            indSalaries = [],
+            indDividends = [],
+            indLobbying = [];
+
         for (ind in industryStatistics) {
             if (industryStatistics.hasOwnProperty(ind)) {
                 i = industryStatistics[ind];
                 toPlot.push([ind, i.marketWeight]);
                 indPurchase.push(i.receivedInPurchases);
+                indInvest.push(i.receivedInInvestments);
                 indGov.push(i.receivedFromGovernment);
                 indSalaries.push(i.spentOnSalaries);
                 indDividends.push(i.spentOnDividends);
@@ -94,7 +106,7 @@ $(document).ready(function () {
             $(wg4Id).empty();
             worldGraphics[world].wg4.destroy();
         }
-        worldGraphics[world].wg4 = $.jqplot(wg4Id, [indPurchase, indGov], {
+        worldGraphics[world].wg4 = $.jqplot(wg4Id, [indPurchase, indGov, indInvest], {
             stackSeries: true,
             seriesDefaults:{
                 renderer:$.jqplot.BarRenderer,
@@ -106,6 +118,9 @@ $(document).ready(function () {
 			    },
 			    {
 				    label: 'Subsidies'
+			    },
+			    {
+			        label: 'Investments'
 			    }
 			],
 
@@ -159,12 +174,101 @@ $(document).ready(function () {
             highlighter: { show: false },
             legend: {show: true}
         });
+
+        // player spending per wealth cat
+        if (worldGraphics[world].wg6 !== undefined) {
+            $(wg6Id).empty();
+            worldGraphics[world].wg6.destroy();
+        }
+
+        worldGraphics[world].wg6 = $.jqplot(wg6Id, [histogram.spentOnEducation, histogram.spentOnGoods, histogram.spentOnStocks, histogram.spentOnTaxes, histogram.spentOnSavings], {
+            stackSeries: true,
+            seriesDefaults:{
+                renderer:$.jqplot.BarRenderer,
+                pointLabels:{stackedValue: true},
+            },
+            series: [
+                {
+				    label: 'Education'
+			    },
+			    {
+				    label: 'Goods'
+			    },
+			    {
+			        label: 'Stocks'
+			    },
+			    {
+			        label: 'Taxes'
+			    },
+			    {
+			        label: 'Savings'
+			    },
+
+			],
+
+            axes: {
+                xaxis: {
+                    renderer: $.jqplot.CategoryAxisRenderer,
+                    ticks: histogram.dataLabels
+                },
+                yaxis: {
+                    min: 0,
+                    max: 1
+                }
+            },
+
+            highlighter: { show: false },
+            legend: {show: true}
+        });
+
+        // player income per wealth cat
+        if (worldGraphics[world].wg7 !== undefined) {
+            $(wg7Id).empty();
+            worldGraphics[world].wg7.destroy();
+        }
+        worldGraphics[world].wg7 = $.jqplot(wg7Id, [histogram.receivedInSalary, histogram.receivedInDividends, histogram.receivedFromGovernment, histogram.receivedFromSavings], {
+            stackSeries: true,
+            seriesDefaults:{
+                renderer:$.jqplot.BarRenderer,
+                pointLabels:{stackedValue: true},
+            },
+            series: [
+                {
+				    label: 'Salary'
+			    },
+			    {
+				    label: 'Dividends'
+			    },
+			    {
+			        label: 'Soc. Serv.'
+			    },
+			    {
+			        label: 'Savings'
+			    }
+			],
+
+            axes: {
+                xaxis: {
+                    renderer: $.jqplot.CategoryAxisRenderer,
+                    ticks: histogram.dataLabels
+                },
+                yaxis: {
+                    min: 0,
+                    max: 1
+                }
+            },
+
+            highlighter: { show: false },
+            legend: {show: true}
+        });
+
+
     }
 
     function updateRanking(world, values) {
         var str = '<table>', i;
         for (i = 0; i < values.length; i += 1) {
-            str += '<tr><td>' + values[i].username + '</td><td>' + Math.round(values[i].value) + '$</td></tr>';
+            str += '<tr><td>' + values[i].username + '</td><td style="text-align: right">' + Math.round(values[i].value) + '$</td></tr>';
         }
         str += '</table>';
         $('div.' + world + ' div.playerranking').html(str);
@@ -173,7 +277,7 @@ $(document).ready(function () {
     function updateOtherStats(world, values) {
         var str = '<table>', i;
         for (i = 0; i < values.length; i += 1) {
-            str += '<tr><td>' + values[i].name + '</td><td>' + values[i].value + '</td></tr>';
+            str += '<tr><td>' + values[i].name + '</td><td>' + (Math.round(values[i].value * 100) / 100) + '</td></tr>';
         }
         str += '</table>';
         $('div.' + world + ' div.otherstats').html(str);
@@ -422,8 +526,12 @@ $(document).ready(function () {
                 function (data, textStatus, jqXHR) {
                     updateWorldGraphics('opov', data.moneyDistribution, data.industryStatistics);
                     updateRanking('opov', data.topPlayers);
-                    updateOtherStats('opov', [ { name: 'test', value: 'v' }]);
-                    updateOtherStats('opov', data.statistics);
+                    updateOtherStats('opov', [
+                        data.statistics[4],
+                        data.statistics[5],
+                        data.statistics[6],
+                        { name: 'Total Cash', value: data.totalCash}
+                    ]);
                 },
                 'json'
             ));
@@ -431,7 +539,12 @@ $(document).ready(function () {
                 function (data, textStatus, jqXHR) {
                     updateWorldGraphics('odov', data.moneyDistribution, data.industryStatistics);
                     updateRanking('odov', data.topPlayers);
-                    updateOtherStats('odov', data.statistics);
+                    updateOtherStats('odov', [
+                        data.statistics[4],
+                        data.statistics[5],
+                        data.statistics[6],
+                        { name: 'Total Cash', value: data.totalCash}
+                    ]);
                 },
                 'json'
             ));

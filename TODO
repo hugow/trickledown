@@ -4,7 +4,6 @@ BEFORE FIRST RELEASE
 
 _ non linearites (introduce this AFTER the world becomes better understood)
 
-_ curves that don't leak (I tried the other version of the lib... not any better for me)
 
 _ world stats:
     _ total number of players
@@ -20,8 +19,6 @@ _ improved look
     _ rounding of values (we don't care about cents!)
 
 
-_ captcha for logging in
-
 _ reddit, digg, facebook, mail linking
 
 _ linking to my blog
@@ -33,6 +30,10 @@ _ description of the model (better about)
 _ GPL License
 
 -------------- version 2 --------------
+_ curves that don't leak (I tried the other version of the lib... not any better for me)
+
+_ captcha for logging in
+
 _ ticker, or notification system: who's climbing on top
 
 _ updates notified through twitter

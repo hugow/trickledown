@@ -456,7 +456,8 @@ Industry.prototype.resetStatistics = function () {
         spentOnLobbying: 0,
         spentOnDividends: 0,
         receivedInPurchases: 0,
-        receivedFromGovernment: 0
+        receivedFromGovernment: 0,
+        receivedInInvestments: 0
     };
 };
 Industry.prototype.resetInvestmentData = function () {
@@ -469,6 +470,7 @@ Industry.prototype.resetInvestmentData = function () {
 Industry.prototype.invest = function (reason, amount, integratedAmount) {
     this.cash += amount;
     this.investments[reason] += integratedAmount;
+    this.statistics.receivedInInvestments += amount;
     // NOTE: lobbying money should go to some government individuals...
     // this... is absurdly complicated, we will leave this money
     // as cash in the industry... we will put this money on our payroll...
@@ -837,24 +839,63 @@ World.prototype.getMoneyDistribution = function () {
         number = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
         total = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
         percent = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        spentOnEducation = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        spentOnGoods = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        spentOnStocks = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        spentOnTaxes = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        spentOnSavings = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        receivedInSalary = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        receivedInDividends = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        receivedFromGovernment = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+        receivedFromSavings = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+
         totalValue = 0,
+        tots,
+        totr,
         i;
     // put employees in an histogram
     this.population.forEach(function (e) {
         var w = e.income + e.cash + e.savings,
-            i;
+            i,
+            stats = e.statistics;
         totalValue += w;
 
         for (i = 0; i < buckets.length; i += 1) {
             if (w < buckets[i]) {
                 number[i] += 1;
                 total[i] += w;
+
+                spentOnEducation[i] += stats.spentOnEducation;
+                spentOnGoods[i] += stats.spentOnGoods;
+                spentOnStocks[i] += stats.spentOnStocks;
+                spentOnTaxes[i] += stats.spentOnTaxes;
+                spentOnSavings[i] += stats.spentOnSavings;
+                receivedInSalary[i] += stats.receivedInSalary;
+                receivedInDividends[i] += stats.receivedInDividends;
+                receivedFromGovernment[i] += stats.receivedFromGovernment;
+                receivedFromSavings[i] += stats.receivedFromSavings;
+
                 break;
             }
         }
     });
     for (i = 0; i < buckets.length; i += 1) {
         percent[i] = total[i] / totalValue;
+        tots = spentOnEducation[i] + spentOnGoods[i] + spentOnStocks[i] + spentOnTaxes[i] + spentOnSavings[i];
+        totr = receivedInSalary[i] + receivedInDividends[i] + receivedFromGovernment[i] + receivedFromSavings[i];
+        if (tots > 0) {
+            spentOnEducation[i] /= tots;
+            spentOnGoods[i] /= tots;
+            spentOnStocks[i] /= tots;
+            spentOnTaxes[i] /= tots;
+            spentOnSavings[i] /= tots;
+        }
+        if (totr > 0) {
+            receivedInSalary[i] /= totr;
+            receivedInDividends[i] /= totr;
+            receivedFromGovernment[i] /= totr;
+            receivedFromSavings[i] /= totr;
+        }
     }
 
     return {
@@ -862,7 +903,16 @@ World.prototype.getMoneyDistribution = function () {
         dataLabels: dataLabels,
         number: number,
         total: total,
-        percent: percent
+        percent: percent,
+        spentOnEducation: spentOnEducation,
+        spentOnGoods: spentOnGoods,
+        spentOnStocks: spentOnStocks,
+        spentOnTaxes: spentOnTaxes,
+        spentOnSavings: spentOnSavings,
+        receivedInSalary: receivedInSalary,
+        receivedInDividends: receivedInDividends,
+        receivedFromGovernment: receivedFromGovernment,
+        receivedFromSavings: receivedFromSavings
     };
 };
 
