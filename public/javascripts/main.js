@@ -1,3 +1,31 @@
+/**
+    File: main.js
+    copyright (c) 2011 Hugo Windisch
+
+    The author can be contacted at ideadotprototype.tumblr.com
+
+    This file is part of TrickleDown.
+
+    TrickleDown is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    TrickleDown is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with TrickleDown.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
+    This stuff is very messy and full of scars and stigmata from its
+    node ko origin...
+
+    Could be cleaned up and made less insane.
+*/
 $(document).ready(function () {
     var singleId = 0,
         // FIXME: should not be known here (should come from the server)
@@ -213,7 +241,7 @@ $(document).ready(function () {
                 },
                 yaxis: {
                     min: 0,
-                    max: 1
+                    max: 100
                 }
             },
 
@@ -254,7 +282,7 @@ $(document).ready(function () {
                 },
                 yaxis: {
                     min: 0,
-                    max: 1
+                    max: 100
                 }
             },
 
@@ -331,7 +359,7 @@ $(document).ready(function () {
     function updatePlayerStats(world, values) {
         var str = '<table>', i;
         for (i in values) {
-            str += '<tr><td>' + i + '</td><td>' + values[i] + '</td></tr>';
+            str += '<tr><td>' + i + '</td><td style="text-align: right">' + Math.round(values[i]) + '</td></tr>';
         }
         str += '</table>';
         $('div.' + world + ' div.ranking').html(str);
@@ -551,14 +579,14 @@ $(document).ready(function () {
             if (username) {
                 requests.push($.get('/worlds/odov/players/' + username,
                     function (data, textStatus, jqXHR) {
-                        updatePlayerStats('odov', data);
+                        updatePlayerStats('odov', {cash: data.cash, rank: data.rank, totalPlayers: data.totalPlayers});
                         updatePlayerGraphics('odov', data);
                     },
                     'json'
                 ));
                 requests.push($.get('/worlds/opov/players/' + username,
                     function (data, textStatus, jqXHR) {
-                        updatePlayerStats('opov', data);
+                        updatePlayerStats('opov', {cash: data.cash, rank: data.rank, totalPlayers: data.totalPlayers});
                         updatePlayerGraphics('opov', data);
                     },
                     'json'

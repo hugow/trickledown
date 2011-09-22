@@ -1,8 +1,26 @@
-// The only thing that will need to be in the database, hopefully,
-// will be players
+/**
+    File: engine.js
+    copyright (c) 2011 Hugo Windisch
 
+    The author can be contacted at ideadotprototype.tumblr.com
 
-var COST_OF_LIVING = 4000;
+    This file is part of TrickleDown.
+
+    TrickleDown is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    TrickleDown is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with TrickleDown.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+var COST_OF_LIVING = 10000;
 
 // javascript illeteracy: there should be a standard way to do this (obj.keys().forEach ???)
 function forEachProperty(object, f) {
@@ -880,9 +898,9 @@ World.prototype.getMoneyDistribution = function () {
         }
     });
     for (i = 0; i < buckets.length; i += 1) {
-        percent[i] = total[i] / totalValue;
-        tots = spentOnEducation[i] + spentOnGoods[i] + spentOnStocks[i] + spentOnTaxes[i] + spentOnSavings[i];
-        totr = receivedInSalary[i] + receivedInDividends[i] + receivedFromGovernment[i] + receivedFromSavings[i];
+        percent[i] = 100 * total[i] / totalValue;
+        tots = (spentOnEducation[i] + spentOnGoods[i] + spentOnStocks[i] + spentOnTaxes[i] + spentOnSavings[i]) / 100;
+        totr = (receivedInSalary[i] + receivedInDividends[i] + receivedFromGovernment[i] + receivedFromSavings[i]) / 100;
         if (tots > 0) {
             spentOnEducation[i] /= tots;
             spentOnGoods[i] /= tots;

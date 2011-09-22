@@ -2,14 +2,6 @@
 BEFORE FIRST RELEASE
 ====================
 
-_ non linearites (introduce this AFTER the world becomes better understood)
-
-
-_ world stats:
-    _ total number of players
-    _ total number of NPCs
-    _ total cash
-    _ taxation model (min max corp)
 
 _ improved look
     _ title
@@ -18,18 +10,21 @@ _ improved look
     _ inline
     _ rounding of values (we don't care about cents!)
 
+_ reasonable default settings for a new player
+
+_ prevent updating NPCs
 
 _ reddit, digg, facebook, mail linking
 
 _ linking to my blog
-
-
 
 _ description of the model (better about)
 
 _ GPL License
 
 -------------- version 2 --------------
+_ non linearites (introduce this AFTER the world becomes better understood)
+
 _ curves that don't leak (I tried the other version of the lib... not any better for me)
 
 _ captcha for logging in
@@ -41,6 +36,10 @@ _ updates notified through twitter
 _ lab / dictator mode (run locally, apply the taxation profile that you want)
 
 --------------- done -------------------
+X world stats:
+    X total cash
+    X taxation model (min max corp)
+
 X amortization of investments and education
 
 X Five funnier industries: Food, Houses, Guns, Health, Coffins
@@ -71,4 +70,6 @@ X world charts:
     X (pie) spending per capita: goods, investments, savings, education, taxes
 
 X more clever NPCs (? increase where it pays, decrease where it pays less... choose one parameter to optimize once in a while)
+
+X more minimal money spent
 
