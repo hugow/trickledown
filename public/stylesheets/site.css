@@ -7,18 +7,27 @@
     width: 860px;
 }
 #headerzone {
-    position: absolute;
-    background-color: red;
+    position:relative;
+    background-color: #404040;
     width: 860px;
     height: 120px;
-    border-radius: 10px 10px 0px 10px;
+    border-radius: 10px 10px 0px 0px;
 }
 #mainzone {
     background-color: yellow;
-    position: absolute;
-    top: 120px;
+    position: relative;
     width: 860px;
 }
+#footerzone {
+    position: relative;
+    background-color: #404040;
+    width: 860px;
+    height: 40px;
+    border-radius: 0px 0px 10px 10px;
+    padding-top: 10px;
+    text-align: center;
+}
+
 div.bigtitle {
     font-weight: bolder;
     font-size: 70;
@@ -32,6 +41,9 @@ div.smalltitle {
     color: white;
     text-align: center;
     font-family:sans-serif;
+}
+div.footer {
+    color: white
 }
 div.worldinner {
     top: 0px;
@@ -60,7 +72,7 @@ div.opov {
     padding-bottom: 1px;    /* wtf!? */
     width: 390px;
 
-    background-color: gray;
+    background-color: #8994ff;
     border-radius: 10px;
 }
 

@@ -2,19 +2,6 @@
 BEFORE FIRST RELEASE
 ====================
 
-
-_ improved look
-    X instant update
-    X proper sizing of panels
-    X stuff that is not visible does not take place
-    _ title
-    _ jquery theme
-    _ fonts
-    _ inline
-    X rounding of values (we don't care about cents!)
-
-_ reasonable default settings for a new player
-
 _ reddit, digg, facebook, mail linking
 
 _ linking to my blog
@@ -77,4 +64,16 @@ X more minimal money spent
 X GPL License
 
 X prevent updating NPCs
+
+X reasonable default settings for a new player
+
+X improved look
+    X instant update
+    X proper sizing of panels
+    X stuff that is not visible does not take place
+    X title
+    X jquery theme
+    X fonts
+    X inline
+    X rounding of values (we don't care about cents!)
 

@@ -54,46 +54,52 @@ $(document).ready(function () {
             wg7Id = world + '_' + 'rbreakdown';
 
         // seems to be leaking heavily if we don't destroy the thing
-        if (worldGraphics[world].wg1 !== undefined) {
-            $(wg1Id).empty();
-            worldGraphics[world].wg1.destroy();
-        }
-        worldGraphics[world].wg1 = $.jqplot(wg1Id, [histogram.percent], {
-            seriesDefaults:{
-                renderer:$.jqplot.BarRenderer,
-                pointLabels: { show: true }
-            },
-            axes: {
-                xaxis: {
-                    renderer: $.jqplot.CategoryAxisRenderer,
-                    ticks: histogram.dataLabels
+        try {
+            if (worldGraphics[world].wg1 !== undefined) {
+                $(wg1Id).empty();
+                worldGraphics[world].wg1.destroy();
+            }
+            worldGraphics[world].wg1 = $.jqplot(wg1Id, [histogram.percent], {
+                seriesDefaults:{
+                    renderer:$.jqplot.BarRenderer,
+                    pointLabels: { show: true }
                 },
-                yaxis: {
-                    min: 0
-                }
-            },
-            highlighter: { show: false }
-        });
-        if (worldGraphics[world].wg2 !== undefined) {
-            $(wg2Id).empty();
-            worldGraphics[world].wg2.destroy();
-        }
-        worldGraphics[world].wg2 = $.jqplot(wg2Id, [histogram.number], {
-            seriesDefaults:{
-                renderer:$.jqplot.BarRenderer,
-                pointLabels: { show: true }
-            },
-            axes: {
-                xaxis: {
-                    renderer: $.jqplot.CategoryAxisRenderer,
-                    ticks: histogram.dataLabels
+                axes: {
+                    xaxis: {
+                        renderer: $.jqplot.CategoryAxisRenderer,
+                        ticks: histogram.dataLabels
+                    },
+                    yaxis: {
+                        min: 0
+                    }
                 },
-                yaxis: {
-                    min: 0
-                }
-            },
-            highlighter: { show: false }
-        });
+                highlighter: { show: false }
+            });
+        } catch (e) {
+        }
+        try {
+            if (worldGraphics[world].wg2 !== undefined) {
+                $(wg2Id).empty();
+                worldGraphics[world].wg2.destroy();
+            }
+            worldGraphics[world].wg2 = $.jqplot(wg2Id, [histogram.number], {
+                seriesDefaults:{
+                    renderer:$.jqplot.BarRenderer,
+                    pointLabels: { show: true }
+                },
+                axes: {
+                    xaxis: {
+                        renderer: $.jqplot.CategoryAxisRenderer,
+                        ticks: histogram.dataLabels
+                    },
+                    yaxis: {
+                        min: 0
+                    }
+                },
+                highlighter: { show: false }
+            });
+        } catch (e) {
+        }
 
         // industry stuff
         var ind, i,
@@ -120,176 +126,190 @@ $(document).ready(function () {
             }
         }
         // market shares of the various industries
-        if (worldGraphics[world].wg3 !== undefined) {
-            $(wg3Id).empty();
-            worldGraphics[world].wg3.destroy();
+        try {
+            if (worldGraphics[world].wg3 !== undefined) {
+                $(wg3Id).empty();
+                worldGraphics[world].wg3.destroy();
+            }
+            worldGraphics[world].wg3 = $.jqplot(wg3Id, [toPlot], {
+              seriesDefaults:{renderer:$.jqplot.PieRenderer, trendline:{show:false}, rendererOptions: { showDataLabels: true}},
+              legend:{show:true}
+            });
+        } catch (e) {
         }
-        worldGraphics[world].wg3 = $.jqplot(wg3Id, [toPlot], {
-          seriesDefaults:{renderer:$.jqplot.PieRenderer, trendline:{show:false}, rendererOptions: { showDataLabels: true}},
-          legend:{show:true}
-        });
 
         // revenue of the different industries
-        if (worldGraphics[world].wg4 !== undefined) {
-            $(wg4Id).empty();
-            worldGraphics[world].wg4.destroy();
-        }
-        worldGraphics[world].wg4 = $.jqplot(wg4Id, [indPurchase, indGov, indInvest], {
-            stackSeries: true,
-            seriesDefaults:{
-                renderer:$.jqplot.BarRenderer,
-                pointLabels:{stackedValue: true},
-            },
-            series: [
-                {
-				    label: 'Purchase'
-			    },
-			    {
-				    label: 'Subsidies'
-			    },
-			    {
-			        label: 'Investments'
-			    }
-			],
-
-            axes: {
-                xaxis: {
-                    renderer: $.jqplot.CategoryAxisRenderer,
-                    ticks: indNames
+        try {
+            if (worldGraphics[world].wg4 !== undefined) {
+                $(wg4Id).empty();
+                worldGraphics[world].wg4.destroy();
+            }
+            worldGraphics[world].wg4 = $.jqplot(wg4Id, [indPurchase, indGov, indInvest], {
+                stackSeries: true,
+                seriesDefaults:{
+                    renderer:$.jqplot.BarRenderer,
+                    pointLabels:{stackedValue: true},
                 },
-                yaxis: {
-                    min: 0
-                }
-            },
+                series: [
+                    {
+				        label: 'Purchase'
+			        },
+			        {
+				        label: 'Subsidies'
+			        },
+			        {
+			            label: 'Investments'
+			        }
+			    ],
 
-            highlighter: { show: false },
-            legend: {show: true}
-        });
+                axes: {
+                    xaxis: {
+                        renderer: $.jqplot.CategoryAxisRenderer,
+                        ticks: indNames
+                    },
+                    yaxis: {
+                        min: 0
+                    }
+                },
+
+                highlighter: { show: false },
+                legend: {show: true}
+            });
+        } catch (e) {
+        }
 
         // revenue of the different industries
-        if (worldGraphics[world].wg5 !== undefined) {
-            $(wg5Id).empty();
-            worldGraphics[world].wg5.destroy();
-        }
-        worldGraphics[world].wg5 = $.jqplot(wg5Id, [indSalaries, indDividends, indLobbying], {
-            stackSeries: true,
-            seriesDefaults:{
-                renderer:$.jqplot.BarRenderer,
-                pointLabels:{stackedValue: true},
-            },
-            series: [
-                {
-				    label: 'Salaries'
-			    },
-			    {
-				    label: 'Dividends'
-			    },
-			    {
-			        label: 'Lobbying'
-			    }
-			],
-
-            axes: {
-                xaxis: {
-                    renderer: $.jqplot.CategoryAxisRenderer,
-                    ticks: indNames
+        try {
+            if (worldGraphics[world].wg5 !== undefined) {
+                $(wg5Id).empty();
+                worldGraphics[world].wg5.destroy();
+            }
+            worldGraphics[world].wg5 = $.jqplot(wg5Id, [indSalaries, indDividends, indLobbying], {
+                stackSeries: true,
+                seriesDefaults:{
+                    renderer:$.jqplot.BarRenderer,
+                    pointLabels:{stackedValue: true},
                 },
-                yaxis: {
-                    min: 0
-                }
-            },
+                series: [
+                    {
+				        label: 'Salaries'
+			        },
+			        {
+				        label: 'Dividends'
+			        },
+			        {
+			            label: 'Lobbying'
+			        }
+			    ],
 
-            highlighter: { show: false },
-            legend: {show: true}
-        });
+                axes: {
+                    xaxis: {
+                        renderer: $.jqplot.CategoryAxisRenderer,
+                        ticks: indNames
+                    },
+                    yaxis: {
+                        min: 0
+                    }
+                },
+
+                highlighter: { show: false },
+                legend: {show: true}
+            });
+        } catch (e) {
+        }
 
         // player spending per wealth cat
-        if (worldGraphics[world].wg6 !== undefined) {
-            $(wg6Id).empty();
-            worldGraphics[world].wg6.destroy();
-        }
+        try {
+            if (worldGraphics[world].wg6 !== undefined) {
+                $(wg6Id).empty();
+                worldGraphics[world].wg6.destroy();
+            }
 
-        worldGraphics[world].wg6 = $.jqplot(wg6Id, [histogram.spentOnEducation, histogram.spentOnGoods, histogram.spentOnStocks, histogram.spentOnTaxes, histogram.spentOnSavings], {
-            stackSeries: true,
-            seriesDefaults:{
-                renderer:$.jqplot.BarRenderer,
-                pointLabels:{stackedValue: true},
-            },
-            series: [
-                {
-				    label: 'Education'
-			    },
-			    {
-				    label: 'Goods'
-			    },
-			    {
-			        label: 'Stocks'
-			    },
-			    {
-			        label: 'Taxes'
-			    },
-			    {
-			        label: 'Savings'
-			    },
-
-			],
-
-            axes: {
-                xaxis: {
-                    renderer: $.jqplot.CategoryAxisRenderer,
-                    ticks: histogram.dataLabels
+            worldGraphics[world].wg6 = $.jqplot(wg6Id, [histogram.spentOnEducation, histogram.spentOnGoods, histogram.spentOnStocks, histogram.spentOnTaxes, histogram.spentOnSavings], {
+                stackSeries: true,
+                seriesDefaults:{
+                    renderer:$.jqplot.BarRenderer,
+                    pointLabels:{stackedValue: true},
                 },
-                yaxis: {
-                    min: 0,
-                    max: 100
-                }
-            },
+                series: [
+                    {
+				        label: 'Education'
+			        },
+			        {
+				        label: 'Goods'
+			        },
+			        {
+			            label: 'Stocks'
+			        },
+			        {
+			            label: 'Taxes'
+			        },
+			        {
+			            label: 'Savings'
+			        },
 
-            highlighter: { show: false },
-            legend: {show: true}
-        });
+			    ],
+
+                axes: {
+                    xaxis: {
+                        renderer: $.jqplot.CategoryAxisRenderer,
+                        ticks: histogram.dataLabels
+                    },
+                    yaxis: {
+                        min: 0,
+                        max: 100
+                    }
+                },
+
+                highlighter: { show: false },
+                legend: {show: true}
+            });
+        } catch (e) {
+        }
 
         // player income per wealth cat
-        if (worldGraphics[world].wg7 !== undefined) {
-            $(wg7Id).empty();
-            worldGraphics[world].wg7.destroy();
-        }
-        worldGraphics[world].wg7 = $.jqplot(wg7Id, [histogram.receivedInSalary, histogram.receivedInDividends, histogram.receivedFromGovernment, histogram.receivedFromSavings], {
-            stackSeries: true,
-            seriesDefaults:{
-                renderer:$.jqplot.BarRenderer,
-                pointLabels:{stackedValue: true},
-            },
-            series: [
-                {
-				    label: 'Salary'
-			    },
-			    {
-				    label: 'Dividends'
-			    },
-			    {
-			        label: 'Soc. Serv.'
-			    },
-			    {
-			        label: 'Savings'
-			    }
-			],
-
-            axes: {
-                xaxis: {
-                    renderer: $.jqplot.CategoryAxisRenderer,
-                    ticks: histogram.dataLabels
+        try {
+            if (worldGraphics[world].wg7 !== undefined) {
+                $(wg7Id).empty();
+                worldGraphics[world].wg7.destroy();
+            }
+            worldGraphics[world].wg7 = $.jqplot(wg7Id, [histogram.receivedInSalary, histogram.receivedInDividends, histogram.receivedFromGovernment, histogram.receivedFromSavings], {
+                stackSeries: true,
+                seriesDefaults:{
+                    renderer:$.jqplot.BarRenderer,
+                    pointLabels:{stackedValue: true},
                 },
-                yaxis: {
-                    min: 0,
-                    max: 100
-                }
-            },
+                series: [
+                    {
+				        label: 'Salary'
+			        },
+			        {
+				        label: 'Dividends'
+			        },
+			        {
+			            label: 'Soc. Serv.'
+			        },
+			        {
+			            label: 'Savings'
+			        }
+			    ],
 
-            highlighter: { show: false },
-            legend: {show: true}
-        });
+                axes: {
+                    xaxis: {
+                        renderer: $.jqplot.CategoryAxisRenderer,
+                        ticks: histogram.dataLabels
+                    },
+                    yaxis: {
+                        min: 0,
+                        max: 100
+                    }
+                },
 
+                highlighter: { show: false },
+                legend: {show: true}
+            });
+        } catch (e) {
+        }
 
     }
 
@@ -313,23 +333,29 @@ $(document).ready(function () {
 
     function updatePlayerGraphics(world, values) {
         $('div.' + world + ' div.graphics').css('display', 'block');
-         $.jqplot(world + '_income', [[
-            ['Salaries', values.statistics.receivedInSalary],
-            ['Dividends', values.statistics.receivedInDividends],
-            ['Soc. Serv.', values.statistics.receivedFromGovernment],
-            ['Savings', values.statistics.receivedFromSavings]]], {
-          seriesDefaults:{renderer:$.jqplot.PieRenderer, trendline:{show:false}, rendererOptions: { showDataLabels: true}},
-          legend:{show:true}
-        }).replot();
-         $.jqplot(world + '_expenses', [[
-            ['Education', values.statistics.spentOnEducation],
-            ['Goods', values.statistics.spentOnGoods],
-            ['Investments', values.statistics.spentOnStocks],
-            ['Savings', values.statistics.spentOnSavings],
-            ['Taxes', values.statistics.spentOnTaxes]]], {
-          seriesDefaults:{renderer:$.jqplot.PieRenderer, trendline:{show:false}, rendererOptions: { showDataLabels: true}},
-          legend:{show:true}
-        }).replot();
+        try {
+            $.jqplot(world + '_income', [[
+                ['Salaries', values.statistics.receivedInSalary],
+                ['Dividends', values.statistics.receivedInDividends],
+                ['Soc. Serv.', values.statistics.receivedFromGovernment],
+                ['Savings', values.statistics.receivedFromSavings]]], {
+              seriesDefaults:{renderer:$.jqplot.PieRenderer, trendline:{show:false}, rendererOptions: { showDataLabels: true}},
+              legend:{show:true}
+            }).replot();
+        } catch (e) {
+        }
+        try {
+            $.jqplot(world + '_expenses', [[
+                ['Education', values.statistics.spentOnEducation],
+                ['Goods', values.statistics.spentOnGoods],
+                ['Investments', values.statistics.spentOnStocks],
+                ['Savings', values.statistics.spentOnSavings],
+                ['Taxes', values.statistics.spentOnTaxes]]], {
+              seriesDefaults:{renderer:$.jqplot.PieRenderer, trendline:{show:false}, rendererOptions: { showDataLabels: true}},
+              legend:{show:true}
+            }).replot();
+        } catch (e) {
+        }
 
         var inv, roiLabels =  [], roiValues = [];
         for (inv in values.portfolioStatistics.spent) {
@@ -339,22 +365,25 @@ $(document).ready(function () {
             }
         }
 
-        $.jqplot(world + '_roi', [roiValues], {
-            seriesDefaults:{
-                renderer:$.jqplot.BarRenderer,
-                pointLabels: { show: true }
-            },
-            axes: {
-                xaxis: {
-                    renderer: $.jqplot.CategoryAxisRenderer,
-                    ticks: roiLabels
+        try {
+            $.jqplot(world + '_roi', [roiValues], {
+                seriesDefaults:{
+                    renderer:$.jqplot.BarRenderer,
+                    pointLabels: { show: true }
                 },
-                yaxis: {
-                    min: 0
-                }
-            },
-            highlighter: { show: false }
-        }).replot();
+                axes: {
+                    xaxis: {
+                        renderer: $.jqplot.CategoryAxisRenderer,
+                        ticks: roiLabels
+                    },
+                    yaxis: {
+                        min: 0
+                    }
+                },
+                highlighter: { show: false }
+            }).replot();
+        } catch (e) {
+        }
     }
 
     function updatePlayerStats(world, values) {
@@ -416,6 +445,11 @@ $(document).ready(function () {
         result.changed = whenSliderChanges;
 
         return result;
+    }
+
+    function clearUserSliders(world) {
+        var selector = '#tabs-2 div.' + world + ' div.worldinner' + ' div.sliders';
+        $(selector).html('');
     }
 
     function createUserSliders(world) {
@@ -497,32 +531,59 @@ $(document).ready(function () {
             });
             return rep;
         }
-        results.clear = function () {
-            $(selector).html('');
-        };
         return results;
     }
 
+    function clearAllUserSliders() {
+        clearUserSliders('opov');
+        clearUserSliders('odov');
+    }
     function setupInteraction() {
         var opovSliders,
             odovSliders,
             username,
             password;
 
+        function createDefaultData() {
+            return {
+                votingProfile: {
+                    "taxTheRich" : 0.4,
+                    "taxThePoor" : 0.1,
+                    "redistributeToCorporations" : 0.5
+                },
+                spendingProfile: {
+                    education: 0.2,
+                    goods: 0,
+                    savings: 0,
+                    stocks: 0.8
+                },
+                investmentProfile: {
+                    food: { technology: '0.5', size: '0.3', lobbying: '0.2' },
+                    houses: { technology: '0.5', size: '0.3', lobbying: '0.2' },
+                    guns: { technology: '0.5', size: '0.3', lobbying: '0.2' },
+                    health: { technology: '0.5', size: '0.3', lobbying: '0.2' },
+                    coffins: { technology: '0.5', size: '0.3', lobbying: '0.2' }
+                }
+            };
+        }
+
+        $('#username').bind('change', function() {
+            clearAllUserSliders();
+        });
+
         $('#login').bind('click', function () {
             username = $('#username').val();
             password = $('#password').val();
-            if (opovSliders) {
-                opovSliders.clear();
-            }
-            if (odovSliders) {
-                odovSliders.clear();
-            }
+            clearAllUserSliders();
             $.ajax({
                 url: '/worlds/opov/players/' + username + '/profiles?password=' + escape(password),
                 type: "GET",
                 dataType: 'json',
                 success: function (data) {
+                    // create default data for new players
+                    if (data === null) {
+                        data = createDefaultData();
+                    }
                     opovSliders = createUserSliders('opov');
                     opovSliders.setProfiles(data);
                 },
@@ -536,6 +597,10 @@ $(document).ready(function () {
                 type: "GET",
                 dataType: 'json',
                 success: function (data) {
+                    // create default data for new players
+                    if (data === null) {
+                        data = createDefaultData();
+                    }
                     odovSliders = createUserSliders('odov');
                     odovSliders.setProfiles(data);
                 },
