@@ -4,15 +4,16 @@ BEFORE FIRST RELEASE
 
 
 _ improved look
+    X instant update
+    X proper sizing of panels
+    X stuff that is not visible does not take place
     _ title
     _ jquery theme
     _ fonts
     _ inline
-    _ rounding of values (we don't care about cents!)
+    X rounding of values (we don't care about cents!)
 
 _ reasonable default settings for a new player
-
-_ prevent updating NPCs
 
 _ reddit, digg, facebook, mail linking
 
@@ -20,7 +21,7 @@ _ linking to my blog
 
 _ description of the model (better about)
 
-_ GPL License
+
 
 -------------- version 2 --------------
 _ non linearites (introduce this AFTER the world becomes better understood)
@@ -72,4 +73,8 @@ X world charts:
 X more clever NPCs (? increase where it pays, decrease where it pays less... choose one parameter to optimize once in a while)
 
 X more minimal money spent
+
+X GPL License
+
+X prevent updating NPCs
 

@@ -240,7 +240,7 @@ Player.prototype.npcControl = function () {
         // adjust spending on goods
         if (this.cash < 10000) {
             goods = 0;
-        } else if ((this.statistics.spentOnGoods / this.cash) > 0.25) {
+        } else if ((this.statistics.spentOnGoods / this.cash) > 0.40) {
             goods *= 0.9;
         } else {
             goods += 0.001;
@@ -370,6 +370,9 @@ Player.prototype.getInvestmentProfile = function () {
 };
 Player.prototype.setNPC = function (npc) {
     this.npc = npc;
+};
+Player.prototype.isNPC = function () {
+    return this.npc;
 };
 Player.prototype.spend = function (purchaseSystem) {
     var education, goods, basicgoods, stocks, howToSpend = this.howToSpend,

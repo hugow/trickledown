@@ -20,9 +20,6 @@
     along with TrickleDown.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*globals module, __dirname */
-/**
- * Module dependencies.
- */
 
 var express = require('express'),
     app = module.exports = express.createServer(),
@@ -84,6 +81,7 @@ app.post('/worlds/:name/players/:username/profiles', function (req, res) {
         req.body.votingProfile,
         req.body.investmentProfile,
         false,
+        false,
         function (err, callback) {
             if (err) {
                 return res.send(err);
@@ -95,7 +93,6 @@ app.post('/worlds/:name/players/:username/profiles', function (req, res) {
 });
 
 // get the state of a specific user
-//http://127.0.0.1:3000/worlds/opov/players/NPC1
 app.get('/worlds/:name/players/:username', function (req, res) {
     var sim = app.settings.simulationEngine,
         state = sim.getPlayerState(req.params.name, req.params.username);

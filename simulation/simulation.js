@@ -29,9 +29,8 @@ var mongodb = require('mongodb'),
     forEachProperty = engine.forEachProperty;
 
 // all what we need to run the simulation is there
-function Simulation(dbClient, userCol, playerCol) {
+function Simulation(dbClient, playerCol) {
     this.dbClient = dbClient;
-    this.userCol = userCol;
     this.playerCol = playerCol;
     this.worlds = {
         // one dollar one vote (corrupt) world
@@ -52,7 +51,7 @@ Simulation.prototype.start = function () {
     var that = this;
     this.interval = setInterval(function () {
         that.iterate();
-    }, 2); //2000);
+    }, 200); //2000);
 };
 Simulation.prototype.iterate = function () {
     this.periodicalSave();
@@ -93,6 +92,7 @@ Simulation.prototype.updatePlayer = function (
     votingProfile,
     investmentProfile,
     isNPC,
+    updateIfIsNPC,
     callback
 ) {
     var player = this.worlds[world].getPlayer(username),
@@ -100,13 +100,17 @@ Simulation.prototype.updatePlayer = function (
     function update() {
         // if the password matches
         if (player.password === password) {
-            // update the player
-            player.setVotingProfile(votingProfile.taxTheRich, votingProfile.taxThePoor, votingProfile.redistributeToCorporations);
-            player.setSpendingProfile(Number(spendingProfile.goods), Number(spendingProfile.education), Number(spendingProfile.stocks), Number(spendingProfile.savings));
-            player.setInvestmentProfile(investmentProfile);
-            player.setNPC(isNPC);
-            // synch it
-            player.save(that.playerCol, callback);
+            if ((!player.isNPC() || updateIfIsNPC)) {
+                // update the player
+                player.setVotingProfile(votingProfile.taxTheRich, votingProfile.taxThePoor, votingProfile.redistributeToCorporations);
+                player.setSpendingProfile(Number(spendingProfile.goods), Number(spendingProfile.education), Number(spendingProfile.stocks), Number(spendingProfile.savings));
+                player.setInvestmentProfile(investmentProfile);
+                player.setNPC(isNPC);
+                // synch it
+                player.save(that.playerCol, callback);
+            } else {
+                return callback();
+            }
         } else {
             return callback('invalid password');
         }
@@ -114,6 +118,7 @@ Simulation.prototype.updatePlayer = function (
     // if the player does not exist in this world
     // we must create it in all worlds
     if (!player) {
+        updateIfIsNPC = true;
         this.createUser(username, password, function (err) {
             if (err) {
                 return callback('could not create user');
@@ -225,6 +230,7 @@ Simulation.prototype.generateFakeUsers = function (
                 vp,
                 ip,
                 true,
+                true,
                 internalCb
             );
         });
@@ -276,7 +282,7 @@ function createSimulation(callback) {
         },
         // create the collections
         function (client, callback) {
-            var collectionNames = [ 'users', 'players' ];
+            var collectionNames = [ 'players' ];
             async.map(
                 collectionNames,
                 function (name, callback) {
@@ -291,7 +297,7 @@ function createSimulation(callback) {
         },
         // create the simulation object and load the existing worlds
         function (client, collections, callback) {
-            sim = new Simulation(client, collections[0], collections[1]);
+            sim = new Simulation(client, collections[0]);
             sim.load(function (err) {
                 callback(err, sim);
             });

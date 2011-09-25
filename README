@@ -1,0 +1,9 @@
+To deploy the simulation environment you will also need jquery and jqplot
+that are not included.
+
+Where to put jqplot:
+public/jqplot
+
+Where to put jquery:
+
+

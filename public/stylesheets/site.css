@@ -4,12 +4,12 @@
 #appzone {
     display: inline-block;
     text-align: left;
-    width: 800px;
+    width: 860px;
 }
 #headerzone {
     position: absolute;
     background-color: red;
-    width: 800px;
+    width: 860px;
     height: 120px;
     border-radius: 10px 10px 0px 10px;
 }
@@ -17,7 +17,7 @@
     background-color: yellow;
     position: absolute;
     top: 120px;
-    width: 800px;
+    width: 860px;
 }
 div.bigtitle {
     font-weight: bolder;
@@ -34,20 +34,32 @@ div.smalltitle {
     font-family:sans-serif;
 }
 div.worldinner {
+    top: 0px;
     margin: 20px;
+}
+/* I have this twocolumn thing.... it may not be necessary*/
+div.twocolumns {
+    position: relative;
+    left: 0px;
+    right: 0px;
 }
 div.odov {
     position: absolute;
-    right: 5px;
+    padding-top: 1px;       /* wtf!? */
+    padding-bottom: 1px;    /* wtf!? */
+    top: 0px;
+    right: 0px; /* 5px */
     width: 390px;
     background-color: red;
     border-radius: 10px;
 }
 
 div.opov {
-    position: absolute;
-    left: 5px;
+    position: relative;
+    padding-top: 1px;       /* wtf!? */
+    padding-bottom: 1px;    /* wtf!? */
     width: 390px;
+
     background-color: gray;
     border-radius: 10px;
 }
@@ -64,8 +76,10 @@ div.sectioncomment {
     margin-bottom: 20px;
 }
 
-div.myThing {
-    height: 1600px;
+div.login {
+    padding-top: 20px;
+    padding-bottom: 40px;
+    text-align: center;
 }
 
 

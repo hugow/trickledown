@@ -312,6 +312,7 @@ $(document).ready(function () {
     }
 
     function updatePlayerGraphics(world, values) {
+        $('div.' + world + ' div.graphics').css('display', 'block');
          $.jqplot(world + '_income', [[
             ['Salaries', values.statistics.receivedInSalary],
             ['Dividends', values.statistics.receivedInDividends],
@@ -357,12 +358,20 @@ $(document).ready(function () {
     }
 
     function updatePlayerStats(world, values) {
+        $('div.' + world + ' div.ranking').css('display', 'block');
         var str = '<table>', i;
         for (i in values) {
             str += '<tr><td>' + i + '</td><td style="text-align: right">' + Math.round(values[i]) + '</td></tr>';
         }
         str += '</table>';
         $('div.' + world + ' div.ranking').html(str);
+    }
+
+    function hidePlayerStats(world) {
+        $('div.' + world + ' div.ranking').css('display', 'none');
+    }
+    function hidePlayerGraphics(world) {
+        $('div.' + world + ' div.graphics').css('display', 'none');
     }
 
     function createSliderBox(containerSelector, boxdescr, whenSliderChanges) {
@@ -540,9 +549,7 @@ $(document).ready(function () {
 
     function setupSimulation () {
         var requests = [];
-        // set an interval to reload the world (we know it updates constantly,
-        // there is no point in being notified)
-        setInterval(function () {
+        function simulate() {
             var username = $('#username').val();
             // abort all pending ajax requests
             requests.forEach(function (req) {
@@ -577,25 +584,47 @@ $(document).ready(function () {
                 'json'
             ));
             if (username) {
-                requests.push($.get('/worlds/odov/players/' + username,
-                    function (data, textStatus, jqXHR) {
+                requests.push($.ajax({
+                    url: '/worlds/odov/players/' + username,
+                    success: function (data, textStatus, jqXHR) {
                         updatePlayerStats('odov', {cash: data.cash, rank: data.rank, totalPlayers: data.totalPlayers});
                         updatePlayerGraphics('odov', data);
                     },
-                    'json'
-                ));
-                requests.push($.get('/worlds/opov/players/' + username,
-                    function (data, textStatus, jqXHR) {
+                    error: function () {
+                        hidePlayerStats('odov');
+                        hidePlayerGraphics('odov');
+                    },
+                    dataType: 'json'
+                }));
+                requests.push($.ajax({
+                    url: '/worlds/opov/players/' + username,
+                    success: function (data, textStatus, jqXHR) {
                         updatePlayerStats('opov', {cash: data.cash, rank: data.rank, totalPlayers: data.totalPlayers});
                         updatePlayerGraphics('opov', data);
                     },
-                    'json'
-                ));
+                    error: function () {
+                        hidePlayerStats('opov');
+                        hidePlayerGraphics('opov');
+                    },
+                    dataType: 'json'
+                }));
+            } else {
+                hidePlayerStats('odov');
+                hidePlayerGraphics('odov');
+                hidePlayerStats('opov');
+                hidePlayerGraphics('opov');
             }
-
-
-
-        }, 3300);
+        }
+        // set an interval to reload the world (we know it updates constantly,
+        // there is no point in being notified)
+        setInterval(simulate, 3300);
+        // immediately do the first interval
+        simulate();
+        // hide stuff
+        hidePlayerStats('odov');
+        hidePlayerGraphics('odov');
+        hidePlayerStats('opov');
+        hidePlayerGraphics('opov');
     }
     setupSimulation();
     setupInteraction();
