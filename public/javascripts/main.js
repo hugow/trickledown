@@ -1,4 +1,4 @@
-fffffffffffffffffffff/**
+/**
     File: main.js
     copyright (c) 2011 Hugo Windisch
 
