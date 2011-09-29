@@ -2,12 +2,7 @@
 BEFORE FIRST RELEASE
 ====================
 
-_ reddit, digg, facebook, mail linking
-
 _ linking to my blog
-
-_ description of the model (better about)
-
 
 
 -------------- version 2 --------------
@@ -22,6 +17,8 @@ _ ticker, or notification system: who's climbing on top
 _ updates notified through twitter
 
 _ lab / dictator mode (run locally, apply the taxation profile that you want)
+
+_ reddit, digg, facebook, mail linking
 
 --------------- done -------------------
 X world stats:
@@ -76,4 +73,10 @@ X improved look
     X fonts
     X inline
     X rounding of values (we don't care about cents!)
+
+X proof read all texts (and capitalizations)
+
+X description of the model (better about)
+
+X tool tips for all sliders
 

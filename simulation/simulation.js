@@ -51,7 +51,7 @@ Simulation.prototype.start = function () {
     var that = this;
     this.interval = setInterval(function () {
         that.iterate();
-    }, 200); //2000);
+    }, 2000);
 };
 Simulation.prototype.iterate = function () {
     this.periodicalSave();
@@ -101,8 +101,6 @@ Simulation.prototype.updatePlayer = function (
         // if the password matches
         if (player.password === password) {
             if ((!player.isNPC() || updateIfIsNPC)) {
-console.log('update');
-console.log(investmentProfile);
                 // update the player
                 player.setVotingProfile(votingProfile.taxTheRich, votingProfile.taxThePoor, votingProfile.redistributeToCorporations);
                 player.setSpendingProfile(Number(spendingProfile.goods), Number(spendingProfile.education), Number(spendingProfile.stocks), Number(spendingProfile.savings));

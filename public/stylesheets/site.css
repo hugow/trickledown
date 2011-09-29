@@ -93,5 +93,6 @@ div.login {
     padding-bottom: 40px;
     text-align: center;
 }
-
-
+img.tooltip {
+    margin-left: 10px;
+}

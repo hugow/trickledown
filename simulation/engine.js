@@ -156,9 +156,9 @@ Portfolio.prototype.dividendStatistic = function (sector, amount) {
     this.statistics.received[sector] += amount;
 };
 // make the portfolio leak some of its value over time
-Portfolio.prototype.amortize = function () {
+Portfolio.prototype.age = function () {
     var factors = {
-        size: 0.995,
+        size: 0.99,
         technology: 0.99,
         lobbying: 0.9
     };
@@ -278,6 +278,14 @@ Player.prototype.npcControl = function () {
             this.vote.taxThePoor *= 0.9;
             this.vote.redistributeToCorporations *= 0.9;
         }
+
+        /*
+        override by uncommenting to test a specific case
+        this.vote.taxTheRich = 0;
+        this.vote.taxThePoor = 0;
+        this.vote.redistributeToCorporations = 1;
+        */
+
         this.vote.redistributeToCorporations = limit(this.vote.redistributeToCorporations, 1);
         this.vote.taxTheRich = limit(this.vote.taxTheRich, 0.4);
         this.vote.taxThePoor = limit(this.vote.taxThePoor, 0.4);
@@ -459,11 +467,11 @@ Player.prototype.payDividends = function (sector, amount) {
     this.portfolio.dividendStatistic(sector, amount);
 };
 
-Player.prototype.amortize = function () {
+Player.prototype.age = function () {
     // make the education age
     this.education = this.education * 0.999;
     // make the portfolio age
-    this.portfolio.amortize();
+    this.portfolio.age();
 };
 
 // this is an industry
@@ -503,7 +511,7 @@ Industry.prototype.updateMarketWeight = function () {
     var investments = this.investments;
     investments.marketWeight =
         investments.size +
-        investments.technology * 0.1;
+        investments.technology * 0.5;
     // update the various stats
     this.statistics.marketWeight = investments.marketWeight;
 };
@@ -699,7 +707,8 @@ World.prototype.distributeGovernmentMoneyToCorporations = function (amount) {
 
 // this is the fun part, how the government acts on the economy
 World.prototype.taxation = function () {
-    var taxTheRich = 0,
+    var that = this,
+        taxTheRich = 0,
         taxThePoor = 0,
         redistributeToCorporations = 0,
         maxIncome = 0,
@@ -712,16 +721,29 @@ World.prototype.taxation = function () {
             function (person) { return 1; };
 
     // compute the taxation profile
-    this.population.forEach(function (person) {
-        var weight = getVoteWeight(person);
-        taxTheRich += person.vote.taxTheRich * weight;
-        taxThePoor += person.vote.taxThePoor * weight;
-        redistributeToCorporations += person.vote.redistributeToCorporations * weight;
-        voteWeight += weight;
-        if (person.income > maxIncome) {
-            maxIncome = person.income;
-        }
-    });
+    function computeVoteWeights(getVoteWeight) {
+        that.population.forEach(function (person) {
+            var weight = getVoteWeight(person);
+            taxTheRich += person.vote.taxTheRich * weight;
+            taxThePoor += person.vote.taxThePoor * weight;
+            redistributeToCorporations += person.vote.redistributeToCorporations * weight;
+            voteWeight += weight;
+            if (person.income > maxIncome) {
+                maxIncome = person.income;
+            }
+        });
+    }
+    computeVoteWeights(getVoteWeight);
+
+    // well... this is possible if everyone is below the 100K threshold... which
+    // is kinda weird but let's say... vaguely possible
+    if (voteWeight === 0) {
+        computeVoteWeights(function (person) { return 1; });
+     }
+    // just for sure!
+    if (voteWeight === 0) {
+        voteWeight = 1;
+    }
 
     taxTheRich /= voteWeight;
     taxThePoor /= voteWeight;
@@ -771,9 +793,9 @@ World.prototype.rankPlayers = function () {
 };
 
 // ranks all the players
-World.prototype.amortize = function () {
+World.prototype.age = function () {
     this.population.forEach(function (p) {
-        p.amortize();
+        p.age();
     });
 };
 
@@ -819,8 +841,8 @@ World.prototype.iterate = function () {
     this.industries.forEach(function (ind) {
         ind.distributeDividends(that.population);
     });
-    // 6. amortize investments
-    this.amortize();
+    // 6. age investments
+    this.age();
 
     // 7. rank players from the richest to the poorest (sort players)
     this.rankPlayers();
