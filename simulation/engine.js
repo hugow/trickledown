@@ -266,17 +266,13 @@ Player.prototype.npcControl = function () {
 
         // adjust our voting profile to make us richer (hopefully)
         if (this.cash > 100000) {
-            this.vote.taxTheRich *= 0.9;
-            this.vote.taxThePoor += 0.001;
-            this.vote.taxThePoor *= 1.1;
-            this.vote.redistributeToCorporations += 0.001;
-            this.vote.redistributeToCorporations *= 1.1;
-            // if we get more in salaries:
+            this.vote.taxTheRich = 0.1;
+            this.vote.taxThePoor = 0.5;
+            this.vote.redistributeToCorporations = 0.7;
         } else {
-            this.vote.taxTheRich += 0.001;
-            this.vote.taxTheRich *= 1.1;
-            this.vote.taxThePoor *= 0.9;
-            this.vote.redistributeToCorporations *= 0.9;
+            this.vote.taxTheRich = 0.5;
+            this.vote.taxThePoor = 0.1;
+            this.vote.redistributeToCorporations = 0.2;
         }
 
         /*
